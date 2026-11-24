@@ -53,8 +53,14 @@
     </div>
   </div>
 
+  <!-- Firebase Compat SDK (Cloud Auth & Firestore, graceful offline fallback) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+
   <!-- Scripts (Classic order for 100% file:// offline compatibility) -->
   <script src="js/sound.js"></script>
+  <script src="js/cloud.js"></script>
   <script src="js/data_core.js"></script>
   <script src="js/data_units_1_7.js"></script>
   <script src="js/data_units_8_13.js"></script>

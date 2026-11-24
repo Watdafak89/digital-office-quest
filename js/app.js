@@ -60,10 +60,34 @@ window.App = (function () {
     }
   }
 
-  function saveState() {
+  function saveState(skipCloud = false) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
     if (activePlayerId) localStorage.setItem(ACTIVE_KEY, activePlayerId);
     else localStorage.removeItem(ACTIVE_KEY);
+
+    if (!skipCloud && window.CloudSync && CloudSync.isAvailable()) {
+      const p = getActivePlayer();
+      if (p) CloudSync.savePlayer(p);
+    }
+  }
+
+  function upsertPlayer(cloudPlayer) {
+    if (!cloudPlayer || !cloudPlayer.id) return;
+    const idx = players.findIndex(x => x.id === cloudPlayer.id || (cloudPlayer.uid && x.uid === cloudPlayer.uid));
+    if (idx >= 0) {
+      players[idx] = { ...players[idx], ...cloudPlayer };
+    } else {
+      players.push(cloudPlayer);
+    }
+  }
+
+  async function refreshCloudPlayers() {
+    if (!window.CloudSync || !CloudSync.isAvailable()) return false;
+    const remoteList = await CloudSync.fetchAllPlayers();
+    if (!Array.isArray(remoteList)) return false;
+    remoteList.forEach(rp => upsertPlayer(rp));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+    return true;
   }
 
   function getActivePlayer() {
@@ -287,10 +311,31 @@ window.App = (function () {
         </div>
 
         <div class="welcome-form-card">
-          <h2 style="margin-bottom:4px; text-align:center;">ลงทะเบียนพนักงานใหม่</h2>
-          <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px; text-align:center;">กรอกข้อมูลเพื่อแสดงบนบัตรพนักงานและเกียรติบัตรดิจิทัล</p>
+          <h2 id="auth-card-title" style="margin-bottom:4px; text-align:center;">เข้าสู่ระบบ / ลงทะเบียน</h2>
+          <p id="auth-card-sub" style="font-size:14px; color:var(--text-muted); margin-bottom:14px; text-align:center;">บันทึกความก้าวหน้าและคะแนนบน Cloud เล่นต่อได้ทุกอุปกรณ์</p>
 
-          <form id="reg-form">
+          <div class="auth-mode-tabs">
+            <button type="button" class="auth-mode-tab active" id="tab-auth-login">🔑 เข้าสู่ระบบ</button>
+            <button type="button" class="auth-mode-tab" id="tab-auth-register">✨ ลงทะเบียนใหม่</button>
+          </div>
+
+          <div id="auth-error-box" class="auth-error-box"></div>
+
+          <!-- Login Form -->
+          <form id="login-form">
+            <div class="form-group">
+              <label>รหัสนักศึกษา *</label>
+              <input class="form-control" id="login-id" placeholder="เช่น 6920201001" autocomplete="username" required />
+            </div>
+            <div class="form-group">
+              <label>รหัสผ่าน *</label>
+              <input type="password" class="form-control" id="login-pass" placeholder="กรอกรหัสผ่านที่ตั้งไว้" autocomplete="current-password" required />
+            </div>
+            <button type="submit" id="btn-login-submit" class="btn btn-primary" style="width:100%; margin-top:6px;">เข้าสู่ระบบ Cloud ➔</button>
+          </form>
+
+          <!-- Register Form -->
+          <form id="reg-form" class="hidden">
             <div class="form-group">
               <label>ชื่อ - นามสกุล นักศึกษา *</label>
               <input class="form-control" id="reg-name" placeholder="เช่น นายกิตติพงศ์ ใจดี" required />
@@ -298,16 +343,22 @@ window.App = (function () {
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div class="form-group">
                 <label>รหัสนักศึกษา *</label>
-                <input class="form-control" id="reg-id" placeholder="เช่น 6920201001" required />
+                <input class="form-control" id="reg-id" placeholder="เช่น 6920201001" autocomplete="username" required />
               </div>
+              <div class="form-group">
+                <label>รหัสผ่าน (อย่างน้อย 6 ตัว) *</label>
+                <input type="password" class="form-control" id="reg-pass" placeholder="ตั้งรหัสผ่าน..." minlength="6" autocomplete="new-password" required />
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
               <div class="form-group">
                 <label>ระดับชั้น / กลุ่ม *</label>
                 <input class="form-control" id="reg-class" value="ปวช.1/1" required />
               </div>
-            </div>
-            <div class="form-group">
-              <label>สาขาวิชา / แผนกวิชา</label>
-              <input class="form-control" id="reg-dept" placeholder="เช่น การจัดการสำนักงานดิจิทัล / การบัญชี / การตลาด" />
+              <div class="form-group">
+                <label>สาขาวิชา / แผนกวิชา</label>
+                <input class="form-control" id="reg-dept" placeholder="เช่น การจัดการสำนักงานฯ" />
+              </div>
             </div>
 
             <div class="form-group">
@@ -327,32 +378,13 @@ window.App = (function () {
               })()}
             </div>
 
-            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:6px;">เริ่มต้นภารกิจสำนักงานดิจิทัล ➔</button>
+            <button type="submit" id="btn-reg-submit" class="btn btn-primary" style="width:100%; margin-top:6px;">ลงทะเบียนและเริ่มภารกิจ ➔</button>
           </form>
 
-          ${players.length > 0 ? `
-            <div class="saved-players-list">
-              <div style="font-family:var(--font-head); font-size:13px; font-weight:700; color:var(--text-muted);">
-                📂 เล่นต่อจากบัญชีที่บันทึกไว้ในเครื่องนี้ (${players.length})
-              </div>
-              ${players.map(pl => {
-                const av = window.GAME_DATA.avatars.find(a => a.id === pl.avatarId) || window.GAME_DATA.avatars[0];
-                const rk = getRank(pl.xp);
-                return `
-                  <div class="saved-player-chip" data-pid="${pl.id}">
-                    <div style="display:flex; align-items:center; gap:10px;">
-                      <div class="hud-avatar" style="width:36px; height:36px; font-size:16px; background:${av.bg}">${renderAvatarContent(av)}</div>
-                      <div>
-                        <div style="font-weight:700; font-size:14px;">${pl.name} <small style="color:var(--text-muted);">(${pl.studentId})</small></div>
-                        <div style="font-size:12px; color:var(--text-muted);">${rk.icon} ${rk.title} • ${pl.xp} XP • ผ่าน ${countCompletedUnits(pl)}/13 บท</div>
-                      </div>
-                    </div>
-                    <span style="color:var(--primary); font-weight:700; font-size:13px;">เข้าเล่น ➔</span>
-                  </div>
-                `;
-              }).join("")}
-            </div>
-          ` : ""}
+          <div class="cloud-note-bar">
+            <span>☁️</span>
+            <span>ระบบเชื่อมต่อ <strong>Firebase Cloud</strong> บันทึกคะแนนและเหรียญตราอัตโนมัติ</span>
+          </div>
         </div>
       </div>
     `;
@@ -415,23 +447,118 @@ window.App = (function () {
       triggerBtn.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openAvatarPickerModal(); } };
     }
 
-    main.querySelectorAll(".saved-player-chip").forEach(el => {
-      el.onclick = () => {
-        SoundFX.click();
-        activePlayerId = el.dataset.pid;
-        saveState();
-        navigate("dashboard");
-      };
-    });
+    const errBox = main.querySelector("#auth-error-box");
+    const loginForm = main.querySelector("#login-form");
+    const regForm = main.querySelector("#reg-form");
+    const tabLogin = main.querySelector("#tab-auth-login");
+    const tabReg = main.querySelector("#tab-auth-register");
 
-    main.querySelector("#reg-form").onsubmit = (e) => {
+    function showAuthError(msg) {
+      if (!errBox) return;
+      if (!msg) {
+        errBox.textContent = "";
+        errBox.classList.remove("show");
+      } else {
+        errBox.textContent = "⚠️ " + msg;
+        errBox.classList.add("show");
+      }
+    }
+
+    function switchAuthMode(mode) {
+      SoundFX.click();
+      showAuthError("");
+      const isLogin = mode === "login";
+      tabLogin.classList.toggle("active", isLogin);
+      tabReg.classList.toggle("active", !isLogin);
+      loginForm.classList.toggle("hidden", !isLogin);
+      regForm.classList.toggle("hidden", isLogin);
+    }
+
+    tabLogin.onclick = () => switchAuthMode("login");
+    tabReg.onclick = () => switchAuthMode("register");
+
+    loginForm.onsubmit = async (e) => {
       e.preventDefault();
-      SoundFX.levelUp();
+      showAuthError("");
+      const studentId = main.querySelector("#login-id").value.trim();
+      const password = main.querySelector("#login-pass").value;
+      const btn = main.querySelector("#btn-login-submit");
+
+      btn.disabled = true;
+      btn.textContent = "⏳ กำลังเข้าสู่ระบบ Cloud...";
+
+      if (window.CloudSync && CloudSync.isAvailable()) {
+        const res = await CloudSync.loginStudent(studentId, password);
+        if (res.ok && res.player) {
+          SoundFX.levelUp();
+          upsertPlayer(res.player);
+          activePlayerId = res.player.id;
+          saveState(true);
+          navigate("dashboard");
+          showToast(`☁️ ยินดีต้อนรับกลับมา ${res.player.name}!`, "xp");
+          return;
+        }
+        SoundFX.wrong();
+        showAuthError(res.error || "เข้าสู่ระบบไม่สำเร็จ");
+      } else {
+        // Offline local fallback
+        const found = players.find(pl => String(pl.studentId).trim().toLowerCase() === studentId.toLowerCase());
+        if (found) {
+          SoundFX.levelUp();
+          activePlayerId = found.id;
+          saveState(true);
+          navigate("dashboard");
+          showToast(`📴 เข้าสู่ระบบโหมดออฟไลน์: ${found.name}`, "xp");
+          return;
+        }
+        SoundFX.wrong();
+        showAuthError("ไม่สามารถเชื่อมต่อ Cloud ได้ และไม่พบบัญชีนี้ในเครื่อง");
+      }
+
+      btn.disabled = false;
+      btn.textContent = "เข้าสู่ระบบ Cloud ➔";
+    };
+
+    regForm.onsubmit = async (e) => {
+      e.preventDefault();
+      showAuthError("");
       const name = main.querySelector("#reg-name").value.trim();
       const studentId = main.querySelector("#reg-id").value.trim();
+      const password = main.querySelector("#reg-pass").value;
       const classRoom = main.querySelector("#reg-class").value.trim() || "ปวช.1";
-      const department = main.querySelector("#reg-dept").value.trim() || "พาณิชยกรรม";
+      const department = main.querySelector("#reg-dept").value.trim();
+      const btn = main.querySelector("#btn-reg-submit");
 
+      btn.disabled = true;
+      btn.textContent = "⏳ กำลังสร้างบัญชีบน Cloud...";
+
+      if (window.CloudSync && CloudSync.isAvailable()) {
+        const res = await CloudSync.registerStudent({
+          studentId,
+          password,
+          name,
+          classRoom,
+          department,
+          avatarId: chosenAvatar
+        });
+        if (res.ok && res.player) {
+          SoundFX.levelUp();
+          upsertPlayer(res.player);
+          activePlayerId = res.player.id;
+          saveState(true);
+          navigate("dashboard");
+          showToast(`☁️ ลงทะเบียนสำเร็จ! ยินดีต้อนรับ ${name}`, "xp");
+          return;
+        }
+        SoundFX.wrong();
+        showAuthError(res.error || "ลงทะเบียนไม่สำเร็จ");
+        btn.disabled = false;
+        btn.textContent = "ลงทะเบียนและเริ่มภารกิจ ➔";
+        return;
+      }
+
+      // Offline local fallback
+      SoundFX.levelUp();
       const newPlayer = {
         id: "p_" + Date.now(),
         name,
@@ -444,13 +571,14 @@ window.App = (function () {
         preTestScore: null,
         postTestScore: null,
         units: {},
-        createdAt: new Date().toISOString()
+        arcade: { bestScore: 0, bestCombo: 0, plays: 0, lastScore: 0 },
+        createdAt: Date.now()
       };
       players.push(newPlayer);
       activePlayerId = newPlayer.id;
-      saveState();
+      saveState(true);
       navigate("dashboard");
-      showToast(`🎉 ยินดีต้อนรับ ${name} สู่ OfficeQuest 13!`, "xp");
+      showToast(`🎉 ยินดีต้อนรับ ${name} (บันทึกในเครื่อง)`, "xp");
     };
   }
 
@@ -475,9 +603,10 @@ window.App = (function () {
           <p style="opacity:0.9; font-size:14px;">พิชิตมินิเกมปฏิบัติและแบบทดสอบครบทั้ง 13 บท เพื่อเลื่อนขั้นสู่ตำแหน่ง <strong>ผู้จัดการสำนักงานดิจิทัล</strong></p>
         </div>
         <div style="text-align:right;">
+          <div style="margin-bottom:6px;"><span id="cloud-sync-badge" class="cloud-sync-badge ${window.CloudSync ? CloudSync.getStatus() : "offline"}">${window.CloudSync && CloudSync.isAvailable() ? "☁️ ซิงก์ Cloud แล้ว" : "📴 โหมดออฟไลน์"}</span></div>
           <div style="font-family:var(--font-head); font-size:32px; font-weight:800; line-height:1;">${pctAll}%</div>
           <div style="font-size:12px; opacity:0.85;">ความก้าวหน้ารวม (${doneCount}/13 บท)</div>
-          <button class="btn btn-sm" style="margin-top:8px; background:rgba(255,255,255,0.2); color:#fff;" onclick="App.logoutStudent()">🔄 สลับบัญชีนักศึกษา</button>
+          <button class="btn btn-sm" style="margin-top:8px; background:rgba(255,255,255,0.2); color:#fff;" onclick="App.logoutStudent()">🚪 ออกจากระบบ</button>
         </div>
       </div>
 
@@ -1091,8 +1220,9 @@ window.App = (function () {
 
   function logoutStudent() {
     SoundFX.click();
+    if (window.CloudSync) CloudSync.logout();
     activePlayerId = null;
-    saveState();
+    saveState(true);
     navigate("welcome");
   }
 
@@ -1115,13 +1245,23 @@ window.App = (function () {
     const main = document.getElementById("app-main");
     if (currentView === "welcome") return renderWelcome();
     if (currentView === "dashboard") return renderDashboard();
-    if (currentView === "arcade") return ArcadeModule.render(main);
+    if (currentView === "arcade") {
+      ArcadeModule.render(main);
+      refreshCloudPlayers().then(ok => {
+        if (ok && currentView === "arcade") ArcadeModule.render(main);
+      });
+      return;
+    }
     if (currentView === "unit") return renderUnitView();
     if (currentView === "profile") return renderProfile();
     if (currentView === "certificate") return renderCertificate();
     if (currentView === "teacher") {
       document.getElementById("app-header").classList.add("hidden");
-      return TeacherModule.render(main);
+      TeacherModule.render(main);
+      refreshCloudPlayers().then(ok => {
+        if (ok && currentView === "teacher") TeacherModule.render(main);
+      });
+      return;
     }
   }
 
@@ -1130,6 +1270,18 @@ window.App = (function () {
     loadState();
     currentView = getActivePlayer() ? "dashboard" : "welcome";
     render();
+
+    if (window.CloudSync && CloudSync.isAvailable()) {
+      CloudSync.onAuthStateReady((cloudPlayer) => {
+        if (cloudPlayer) {
+          upsertPlayer(cloudPlayer);
+          activePlayerId = cloudPlayer.id;
+          saveState(true);
+          if (currentView === "welcome") currentView = "dashboard";
+          render();
+        }
+      });
+    }
   }
 
   document.addEventListener("DOMContentLoaded", init);

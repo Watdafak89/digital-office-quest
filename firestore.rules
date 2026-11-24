@@ -1,0 +1,189 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model — OfficeQuest 13
+// ===============================================================
+//
+// Collection: players
+// Document ID: {uid} (Firebase Auth UID of the student)
+// Access Pattern:
+//   - Contains only non-sensitive classroom leaderboard / game progress
+//     fields (no email, password, phone number, or private PII).
+//   - Read: Any authenticated user (students for Leaderboard, teachers
+//     signed in via Firebase Anonymous Auth for Teacher Dashboard).
+//   - Create / Update / Delete: Only the non-anonymous authenticated
+//     owner whose UID matches {uid}.
+//
+// Fields:
+//   - uid:           string (required, immutable, == {uid} and request.auth.uid)
+//   - studentId:     string (required, 1..30 chars)
+//   - name:          string (required, 1..100 chars)
+//   - classRoom:     string (required, 1..40 chars)
+//   - department:    string (required, 0..80 chars)
+//   - avatarId:      string (required, 1..20 chars)
+//   - xp:            int    (required, 0..100000)
+//   - badges:        list   (required, size <= 30)
+//   - preTestScore:  int (0..13) or null (required)
+//   - postTestScore: int (0..13) or null (required)
+//   - units:         map    (required, size <= 20)
+//   - arcade:        map    (optional; keys subset of
+//                            ['bestScore', 'bestCombo', 'plays', 'lastScore'],
+//                            each value a bounded non-negative int)
+//   - createdAt:     int (>= 0) or timestamp (required, immutable)
+//   - updatedAt:     int (>= 0) or timestamp (required)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the request is from any authenticated Firebase Auth user
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check if the authenticated user owns the document path
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Check if the owner is signed in with a non-anonymous provider
+    function isNonAnonymousOwner(userId) {
+      return isOwner(userId) &&
+             request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Check if the authenticated user matches the existing document's uid
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.uid;
+    }
+
+    // Verify uid matches path param and authenticated user on create
+    function uidUnchanged(userId) {
+      return request.resource.data.uid is string &&
+             request.resource.data.uid == userId &&
+             request.resource.data.uid == request.auth.uid;
+    }
+
+    // Verify uid is not modified on update
+    function uidNotModified() {
+      return request.resource.data.uid == resource.data.uid;
+    }
+
+    // Validate that the document contains only allowed top-level fields
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate that all required top-level fields are present
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Validate that immutable fields were not modified on update
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // Validate string type and character length bounds
+    function validString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    // Validate integer type and inclusive range
+    function isValidIntRange(val, minVal, maxVal) {
+      return val is int && val >= minVal && val <= maxVal;
+    }
+
+    // Validate pre/post test score (null or integer 0..13)
+    function isValidScoreOrNull(val) {
+      return val == null || isValidIntRange(val, 0, 13);
+    }
+
+    // Validate timestamp or non-negative epoch milliseconds integer
+    function isValidTimestampOrMillis(val) {
+      return val is timestamp || (val is int && val >= 0);
+    }
+
+    // Validate arcade stats map structure and numeric bounds
+    function isValidArcade(arcade) {
+      return arcade is map &&
+             arcade.keys().hasOnly(['bestScore', 'bestCombo', 'plays', 'lastScore']) &&
+             (!('bestScore' in arcade) || isValidIntRange(arcade.bestScore, 0, 1000000)) &&
+             (!('bestCombo' in arcade) || isValidIntRange(arcade.bestCombo, 0, 1000)) &&
+             (!('plays' in arcade) || isValidIntRange(arcade.plays, 0, 100000)) &&
+             (!('lastScore' in arcade) || isValidIntRange(arcade.lastScore, 0, 1000000));
+    }
+
+    // ===============================================================
+    // Domain Validators (Called in BOTH create and update)
+    // ===============================================================
+
+    function isValidPlayer(data, uid) {
+      let allowedFields = [
+        'uid', 'studentId', 'name', 'classRoom', 'department',
+        'avatarId', 'xp', 'badges', 'preTestScore', 'postTestScore',
+        'units', 'arcade', 'createdAt', 'updatedAt'
+      ];
+      let requiredFields = [
+        'uid', 'studentId', 'name', 'classRoom', 'department',
+        'avatarId', 'xp', 'badges', 'preTestScore', 'postTestScore',
+        'units', 'createdAt', 'updatedAt'
+      ];
+
+      return hasOnlyAllowedFields(allowedFields) &&
+             hasRequiredFields(requiredFields) &&
+             data.uid is string &&
+             data.uid == uid &&
+             data.uid == request.auth.uid &&
+             validString(data.studentId, 1, 30) &&
+             validString(data.name, 1, 100) &&
+             validString(data.classRoom, 1, 40) &&
+             validString(data.department, 0, 80) &&
+             validString(data.avatarId, 1, 20) &&
+             isValidIntRange(data.xp, 0, 100000) &&
+             data.badges is list && data.badges.size() <= 30 &&
+             isValidScoreOrNull(data.preTestScore) &&
+             isValidScoreOrNull(data.postTestScore) &&
+             data.units is map && data.units.size() <= 20 &&
+             (!('arcade' in data) || isValidArcade(data.arcade)) &&
+             isValidTimestampOrMillis(data.createdAt) &&
+             isValidTimestampOrMillis(data.updatedAt);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /players/{uid} {
+      // Classroom Leaderboard and Teacher Dashboard require signed-in read access.
+      // No sensitive PII or credentials are stored in this collection.
+      allow read: if isAuthenticated();
+
+      // Only the non-anonymous authenticated owner may create their own profile.
+      allow create: if isNonAnonymousOwner(uid) &&
+                       uidUnchanged(uid) &&
+                       isValidPlayer(request.resource.data, uid);
+
+      // Only the non-anonymous authenticated owner may update their own profile,
+      // keeping uid and createdAt immutable while re-validating the full schema.
+      allow update: if isNonAnonymousOwner(uid) &&
+                       isDocOwner() &&
+                       uidNotModified() &&
+                       areImmutableFieldsUnchanged(['uid', 'createdAt']) &&
+                       isValidPlayer(request.resource.data, uid);
+
+      // Only the non-anonymous authenticated owner may delete their own profile.
+      allow delete: if isNonAnonymousOwner(uid) && isDocOwner();
+    }
+
+    // Default deny all other collections and subcollections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
