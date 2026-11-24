@@ -286,7 +286,7 @@ window.App = (function () {
         </div>
 
         <div class="welcome-form-card">
-          <h2 style="margin-bottom:4px; text-align:center;">🚀 ลงทะเบียนพนักงานใหม่</h2>
+          <h2 style="margin-bottom:4px; text-align:center;"><span style="position:relative; display:inline-block;"><span style="position:absolute; right:100%; margin-right:8px;" aria-hidden="true">🚀</span>ลงทะเบียนพนักงานใหม่</span></h2>
           <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px; text-align:center;">กรอกข้อมูลเพื่อแสดงบนบัตรพนักงานและเกียรติบัตรดิจิทัล</p>
 
           <form id="reg-form">
