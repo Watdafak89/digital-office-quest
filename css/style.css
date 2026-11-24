@@ -1670,3 +1670,44 @@ table.data-table th {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* ========== Click-to-Select Avatar Trigger & Modal Picker ========== */
+.avatar-selector-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-soft);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.avatar-selector-trigger:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.12);
+}
+
+.modal-box.modal-wide {
+  max-width: 660px;
+  width: 94%;
+  padding: 24px;
+}
+
+.avatar-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 4px 2px;
+}
+
+@media (max-width: 640px) {
+  .avatar-modal-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

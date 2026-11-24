@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="bg9" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
+    </linearGradient>
+    <linearGradient id="skin9" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffe7d1"/>
+      <stop offset="100%" stop-color="#f6caa8"/>
+    </linearGradient>
+    <linearGradient id="hair9" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" fill="url(#bg9)"/>
+  <circle cx="48" cy="58" r="26" fill="#fff" opacity="0.14"/>
+  <circle cx="212" cy="76" r="30" fill="#fff" opacity="0.10"/>
+  <circle cx="52" cy="196" r="18" fill="#fff" opacity="0.12"/>
+  <!-- Shoulders & Charcoal Blazer -->
+  <path d="M40 256 C46 202 82 184 128 184 C174 184 210 202 216 256 Z" fill="#1e293b"/>
+  <polygon points="103,182 128,222 153,182 142,175 114,175" fill="#ffffff"/>
+  <polygon points="122,199 134,199 137,246 128,256 119,246" fill="#7c3aed"/>
+  <path d="M98 188 L118 256 M158 188 L138 256" stroke="#c4b5fd" stroke-width="3.5" fill="none"/>
+  <!-- Neck -->
+  <rect x="113" y="156" width="30" height="32" rx="12" fill="#e8b896"/>
+  <!-- Back Hair -->
+  <path d="M74 120 C68 68 94 40 128 40 C162 40 188 68 182 120 L176 146 L80 146 Z" fill="url(#hair9)"/>
+  <!-- Ears -->
+  <ellipse cx="81" cy="126" rx="8" ry="12" fill="#f6caa8"/>
+  <ellipse cx="175" cy="126" rx="8" ry="12" fill="#f6caa8"/>
+  <!-- Face -->
+  <path d="M84 102 C84 68 172 68 172 102 C172 142 152 169 128 171 C104 169 84 142 84 102 Z" fill="url(#skin9)"/>
+  <!-- Eyes -->
+  <g>
+    <ellipse cx="107" cy="121" rx="9.5" ry="10" fill="#fff"/>
+    <ellipse cx="108" cy="121" rx="7" ry="8" fill="#4c1d95"/>
+    <circle cx="108" cy="122" r="4" fill="#0f172a"/>
+    <circle cx="105" cy="118" r="2.5" fill="#fff"/>
+    <path d="M96 114 Q107 108 118 114" stroke="#0f172a" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+    <ellipse cx="149" cy="121" rx="9.5" ry="10" fill="#fff"/>
+    <ellipse cx="148" cy="121" rx="7" ry="8" fill="#4c1d95"/>
+    <circle cx="148" cy="122" r="4" fill="#0f172a"/>
+    <circle cx="145" cy="118" r="2.5" fill="#fff"/>
+    <path d="M138 114 Q149 108 160 114" stroke="#0f172a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Stylish Round Glasses -->
+  <g stroke="#334155" stroke-width="2.8" fill="rgba(255,255,255,0.16)">
+    <circle cx="107" cy="121" r="15"/>
+    <circle cx="149" cy="121" r="15"/>
+    <path d="M122 121 Q128 118 134 121" fill="none"/>
+    <line x1="84" y1="118" x2="92" y2="120"/>
+    <line x1="164" y1="120" x2="172" y2="118"/>
+  </g>
+  <!-- Eyebrows -->
+  <path d="M96 102 Q107 98 118 102" stroke="#0f172a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M138 102 Q149 98 160 102" stroke="#0f172a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <!-- Nose & Calm Smile -->
+  <path d="M128 129 L126 137 L130 138" stroke="#d49a73" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+  <path d="M118 149 Q128 155 138 149" stroke="#b4534a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Wavy Front Hair -->
+  <path d="M74 114 C72 60 100 35 128 35 C158 35 184 60 182 114 C174 96 168 82 158 76 C154 94 146 104 138 109 C136 90 128 78 120 75 C114 92 104 104 94 108 C92 94 86 86 74 114 Z" fill="url(#hair9)"/>
+  <path d="M96 64 Q128 54 160 64" stroke="#a78bfa" stroke-width="3.5" fill="none" opacity="0.4" stroke-linecap="round"/>
+</svg>
