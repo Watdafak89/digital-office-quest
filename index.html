@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OfficeQuest 13 — เกมมิฟิเคชัน รายวิชาการใช้เครื่องใช้สำนักงานดิจิทัล (ปวช.)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Top Navigation & Player HUD -->
+  <header id="app-header" class="app-header hidden">
+    <div class="header-inner">
+      <div class="brand-area" onclick="App.navigate('dashboard')" role="button" tabindex="0">
+        <div class="brand-logo">🏢</div>
+        <div class="brand-text">
+          <div class="brand-title">OfficeQuest <span class="badge-pill">ปวช. 13 บท</span></div>
+          <div class="brand-sub">การใช้เครื่องใช้สำนักงานดิจิทัล</div>
+        </div>
+      </div>
+
+      <div class="hud-center" id="hud-player-stats">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <div class="hud-actions">
+        <button class="btn-icon-nav" onclick="App.navigate('dashboard')" title="แผนที่ภารกิจ 13 บท">🗺️ <span>ภารกิจ</span></button>
+        <button class="btn-icon-nav" onclick="App.navigate('profile')" title="โปรไฟล์และเหรียญตรา">🏅 <span>เหรียญตรา</span></button>
+        <button class="btn-icon-nav" onclick="App.navigate('certificate')" title="เกียรติบัตรดิจิทัล">📜 <span>เกียรติบัตร</span></button>
+        <button class="btn-icon-nav" id="btn-sound-toggle" onclick="App.toggleSound()" title="เปิด/ปิดเสียง">🔊</button>
+        <button class="btn-teacher" onclick="App.openTeacherAuth()" title="โหมดครูผู้สอน">👩‍🏫 <span>โหมดครู</span></button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main id="app-main" class="app-main">
+    <!-- Dynamic Views Rendered Here -->
+  </main>
+
+  <!-- Celebration / Modal Overlay -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div id="modal-box" class="modal-box">
+      <!-- Dynamic Modal Content -->
+    </div>
+  </div>
+
+  <!-- Scripts (Classic order for 100% file:// offline compatibility) -->
+  <script src="js/sound.js"></script>
+  <script src="js/data_core.js"></script>
+  <script src="js/data_units_1_7.js"></script>
+  <script src="js/data_units_8_13.js"></script>
+  <script src="js/minigames.js"></script>
+  <script src="js/teacher.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
