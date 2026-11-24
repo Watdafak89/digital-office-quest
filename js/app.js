@@ -319,7 +319,7 @@ window.App = (function () {
                     <div class="hud-avatar" id="selected-av-preview" style="width:52px; height:52px; background:${firstAv.bg}">${renderAvatarContent(firstAv)}</div>
                     <div style="flex:1; min-width:0; text-align:left;">
                       <div style="font-family:var(--font-head); font-weight:700; font-size:15px;" id="selected-av-label">${firstAv.label}</div>
-                      <div style="font-size:12px; color:var(--text-muted);" id="selected-av-meta">${firstAv.gender === "male" ? "♂ ตัวละครชาย" : "♀ ตัวละครหญิง"} • คลิกเพื่อเปลี่ยน (${window.GAME_DATA.avatars.length} ตัวละคร)</div>
+                      <div style="font-size:12px; color:var(--text-muted);" id="selected-av-meta">คลิกเพื่อเปลี่ยนตัวละคร (${window.GAME_DATA.avatars.length} แบบ)</div>
                     </div>
                     <span class="btn btn-outline btn-sm" style="pointer-events:none; flex-shrink:0;">🎨 เลือกตัวละคร</span>
                   </div>
@@ -367,33 +367,23 @@ window.App = (function () {
         prev.innerHTML = renderAvatarContent(av);
       }
       if (lbl) lbl.textContent = av.label;
-      if (meta) meta.textContent = `${av.gender === "male" ? "♂ ตัวละครชาย" : "♀ ตัวละครหญิง"} • คลิกเพื่อเปลี่ยน (${window.GAME_DATA.avatars.length} ตัวละคร)`;
+      if (meta) meta.textContent = `คลิกเพื่อเปลี่ยนตัวละคร (${window.GAME_DATA.avatars.length} แบบ)`;
     }
 
     function openAvatarPickerModal() {
       SoundFX.click();
       const allAvs = window.GAME_DATA.avatars;
-      const fCount = allAvs.filter(a => a.gender === "female").length;
-      const mCount = allAvs.filter(a => a.gender === "male").length;
 
       showModal(`
         <div class="avatar-modal-content">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:14px; text-align:left;">
-            <div>
-              <h3 style="font-size:19px; margin-bottom:2px;">🎨 เลือกตัวละครประจำตัว (${allAvs.length} แบบ)</h3>
-              <p style="font-size:12px; color:var(--text-muted); margin:0;">คลิกที่ตัวละครที่ชอบเพื่อเลือกใช้งานทันที</p>
-            </div>
-            <div class="avatar-filter-tabs" id="modal-avatar-filter-tabs">
-              <button type="button" class="avatar-filter-btn active" data-filter="all">ทั้งหมด (${allAvs.length})</button>
-              <button type="button" class="avatar-filter-btn" data-filter="female">หญิง (${fCount})</button>
-              <button type="button" class="avatar-filter-btn" data-filter="male">ชาย (${mCount})</button>
-            </div>
+          <div style="margin-bottom:14px; text-align:center;">
+            <h3 style="font-size:19px; margin-bottom:2px;">🎨 เลือกตัวละครประจำตัว (${allAvs.length} แบบ)</h3>
+            <p style="font-size:12px; color:var(--text-muted); margin:0;">คลิกที่ตัวละครที่ชอบเพื่อเลือกใช้งานทันที</p>
           </div>
 
           <div class="avatar-modal-grid" id="modal-avatar-grid">
             ${allAvs.map(a => `
-              <div class="avatar-opt ${a.id === chosenAvatar ? "selected" : ""}" data-av="${a.id}" data-gender="${a.gender || "all"}">
-                <span class="av-gender-badge ${a.gender === "male" ? "male" : "female"}">${a.gender === "male" ? "♂ ชาย" : "♀ หญิง"}</span>
+              <div class="avatar-opt ${a.id === chosenAvatar ? "selected" : ""}" data-av="${a.id}">
                 <div class="av-circle" style="background:${a.bg}">${renderAvatarContent(a)}</div>
                 <span class="av-label">${a.label}</span>
               </div>
@@ -415,19 +405,6 @@ window.App = (function () {
           chosenAvatar = el.dataset.av;
           updateSelectedAvatarPreview();
           closeModal();
-        };
-      });
-
-      modalBox.querySelectorAll(".avatar-filter-btn").forEach(btn => {
-        btn.onclick = () => {
-          SoundFX.click();
-          const filter = btn.dataset.filter;
-          modalBox.querySelectorAll(".avatar-filter-btn").forEach(b => b.classList.remove("active"));
-          btn.classList.add("active");
-          modalBox.querySelectorAll(".avatar-opt").forEach(opt => {
-            const match = filter === "all" || opt.dataset.gender === filter;
-            opt.classList.toggle("hidden-opt", !match);
-          });
         };
       });
     }
