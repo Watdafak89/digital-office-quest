@@ -1,10 +1,10 @@
 // OfficeQuest Teacher Dashboard — โหมดครูผู้สอน ดูสถิติ 13 บทเรียน และส่งออก CSV (UTF-8 BOM)
 
 window.TeacherModule = (function () {
-  const PASS_KEY = "officequest13_teacher_pass";
+  const PASS_KEY = "officequest13_teacher_pass_v2";
 
   function getPassword() {
-    return localStorage.getItem(PASS_KEY) || "1234";
+    return localStorage.getItem(PASS_KEY) || "Watzero1234";
   }
 
   function setPassword(newPass) {
