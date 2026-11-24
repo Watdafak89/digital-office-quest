@@ -282,12 +282,6 @@ window.App = (function () {
             <p>พิชิตสำนักงานดิจิทัล — รายวิชา <strong>การใช้เครื่องใช้สำนักงานดิจิทัล</strong></p>
           </div>
           <div class="hero-bottom">
-            <div class="hero-chips">
-              <span class="hero-chip">🏢 ครบ 13 บท (4 โซน)</span>
-              <span class="hero-chip">🕹️ มินิเกมจำลองจริง</span>
-              <span class="hero-chip">📊 Pre/Post-Test</span>
-              <span class="hero-chip">📜 เกียรติบัตรดิจิทัล</span>
-            </div>
             <button class="btn btn-sm hero-teacher-btn" onclick="App.openTeacherAuth()">👩‍🏫 เข้าสู่โหมดครูผู้สอน</button>
           </div>
         </div>
