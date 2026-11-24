@@ -307,10 +307,11 @@ h1, h2, h3, h4, button, .font-head {
 }
 
 .welcome-hero {
-  background: linear-gradient(145deg, #312e81, #4f46e5 55%, #0ea5e9);
+  background: #1e1b4b url("../assets/hero-office.jpg") center center / cover no-repeat;
   color: #fff;
   border-radius: 22px;
-  padding: 32px;
+  padding: 28px;
+  min-height: 540px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -319,53 +320,86 @@ h1, h2, h3, h4, button, .font-head {
   overflow: hidden;
 }
 
-.welcome-hero::after {
+.welcome-hero::before {
   content: "";
   position: absolute;
-  width: 240px;
-  height: 240px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  right: -60px;
-  bottom: -60px;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 23, 42, 0.80) 0%,
+    rgba(15, 23, 42, 0.25) 32%,
+    rgba(15, 23, 42, 0.05) 55%,
+    rgba(15, 23, 42, 0.84) 100%
+  );
+  z-index: 1;
+}
+
+.hero-top,
+.hero-bottom {
+  position: relative;
+  z-index: 2;
 }
 
 .hero-tag {
   display: inline-block;
   background: rgba(255, 255, 255, 0.18);
-  padding: 4px 12px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 5px 13px;
   border-radius: 99px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .welcome-hero h1 {
   font-size: 32px;
-  line-height: 1.25;
-  margin-bottom: 10px;
+  line-height: 1.2;
+  margin-bottom: 6px;
+  text-shadow: 0 2px 12px rgba(15, 23, 42, 0.55);
 }
 
 .welcome-hero p {
-  opacity: 0.92;
-  font-size: 15px;
-  margin-bottom: 20px;
-}
-
-.hero-features {
-  list-style: none;
-  display: grid;
-  gap: 10px;
+  opacity: 0.94;
   font-size: 14px;
+  margin-bottom: 0;
+  text-shadow: 0 1px 8px rgba(15, 23, 42, 0.6);
 }
 
-.hero-features li {
+.hero-chips {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.hero-chip {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.12);
-  padding: 9px 13px;
-  border-radius: 12px;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.hero-teacher-btn {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+}
+
+.hero-teacher-btn:hover {
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .welcome-form-card {

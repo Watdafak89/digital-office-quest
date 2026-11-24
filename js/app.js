@@ -211,18 +211,19 @@ window.App = (function () {
     main.innerHTML = `
       <div class="welcome-wrap">
         <div class="welcome-hero">
-          <div>
-            <span class="hero-tag">🎮 เกมมิฟิเคชัน ระดับ ปวช. • ครบทั้ง 13 บทเรียน</span>
-            <h1>OfficeQuest 13<br/>พิชิตสำนักงานดิจิทัล</h1>
-            <p>เรียนรู้และฝึกปฏิบัติรายวิชา <strong>การใช้เครื่องใช้สำนักงานดิจิทัล</strong> ตามสารบัญหนังสือเรียนครบทั้ง 13 บท ผ่านมินิเกมจำลองเครื่องจริง เก็บ XP เลื่อนตำแหน่งงาน และรับเกียรติบัตร!</p>
-            <ul class="hero-features">
-              <li>🏢 <strong>ครบ 13 บทเรียน (4 โซน):</strong> ตั้งแต่พื้นฐาน วัสดุ/ครุภัณฑ์ พิมพ์ดีด อัดสำเนา คำนวณเลข ถ่ายเอกสาร POS คอมพิวเตอร์ โทรศัพท์ โทรสาร ผลิตเอกสาร เข้าเล่ม จนถึงอินเทอร์เน็ต</li>
-              <li>🕹️ <strong>มินิเกมจำลองปฏิบัติจริง:</strong> กดเครื่องคำนวณ 10-Key, ตั้งค่าแผงเครื่องถ่ายเอกสาร/แฟกซ์, สแกนบาร์โค้ด POS, รับสาย 3 กริ่ง และสืบค้นคีย์เวิร์ด</li>
-              <li>📊 <strong>วัดผล Pre-Test / Post-Test + โหมดครู:</strong> ส่งออกคะแนนราย 13 บทเป็นไฟล์ Excel (CSV) ได้ทันที</li>
-            </ul>
+          <div class="hero-top">
+            <span class="hero-tag">🎮 เกมมิฟิเคชัน ระดับ ปวช. • ครบ 13 บทเรียน</span>
+            <h1>OfficeQuest 13</h1>
+            <p>พิชิตสำนักงานดิจิทัล — รายวิชา <strong>การใช้เครื่องใช้สำนักงานดิจิทัล</strong></p>
           </div>
-          <div style="margin-top:20px; display:flex; gap:10px; position:relative; z-index:2;">
-            <button class="btn btn-sm" style="background:rgba(255,255,255,0.2); color:#fff; border:1px solid rgba(255,255,255,0.35);" onclick="App.openTeacherAuth()">👩‍🏫 เข้าสู่โหมดครูผู้สอน</button>
+          <div class="hero-bottom">
+            <div class="hero-chips">
+              <span class="hero-chip">🏢 ครบ 13 บท (4 โซน)</span>
+              <span class="hero-chip">🕹️ มินิเกมจำลองจริง</span>
+              <span class="hero-chip">📊 Pre/Post-Test</span>
+              <span class="hero-chip">📜 เกียรติบัตรดิจิทัล</span>
+            </div>
+            <button class="btn btn-sm hero-teacher-btn" onclick="App.openTeacherAuth()">👩‍🏫 เข้าสู่โหมดครูผู้สอน</button>
           </div>
         </div>
 
