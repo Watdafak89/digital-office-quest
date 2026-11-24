@@ -62,23 +62,29 @@ window.TeacherModule = (function () {
     const avgPre = preList.length ? (preList.reduce((s, p) => s + p.preTestScore, 0) / preList.length).toFixed(1) : "-";
     const avgPost = postList.length ? (postList.reduce((s, p) => s + p.postTestScore, 0) / postList.length).toFixed(1) : "-";
 
+    const settings = App.getCourseSettings ? App.getCourseSettings() : { lockedUnits: [], lockArcade: false, lockPostTest: false };
+    const lockedSet = new Set(settings.lockedUnits || []);
+    const allUnits = window.GAME_DATA.units || [];
+
     container.innerHTML = `
       <div style="margin-bottom:18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
         <div>
           <h2 style="font-size:24px;">👩‍🏫 โหมดครูผู้สอน (Teacher Dashboard)</h2>
-          <p style="color:var(--text-muted); font-size:14px;">ติดตามความก้าวหน้าทั้ง 13 บทเรียน และส่งออกคะแนนเป็นไฟล์ Excel (CSV)</p>
+          <p style="color:var(--text-muted); font-size:14px;">ดูและทดสอบทุกส่วนของระบบเหมือนนักเรียน • ล็อก/ปลดล็อกด่านแบบเรียลไทม์ • ส่งออกคะแนน CSV</p>
         </div>
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button class="btn btn-success btn-sm" id="btn-export-csv">📥 ส่งออกรายงาน CSV (Excel)</button>
-          <button class="btn btn-outline btn-sm" id="btn-change-pass">🔑 เปลี่ยนรหัสผ่านครู</button>
-          <button class="btn btn-primary btn-sm" onclick="App.exitTeacherMode()">← กลับสู่เกม</button>
+          <button class="btn btn-primary btn-sm" onclick="App.navigate('dashboard')">🗺️ ดูแผนที่ภารกิจ (13 บท)</button>
+          <button class="btn btn-outline btn-sm" onclick="App.navigate('arcade')">🎮 มินิเกมส์ & ตารางคะแนน</button>
+          <button class="btn btn-success btn-sm" id="btn-export-csv">📥 ส่งออก CSV</button>
+          <button class="btn btn-outline btn-sm" id="btn-change-pass">🔑 เปลี่ยนรหัสผ่าน</button>
+          <button class="btn btn-danger btn-sm" onclick="App.exitTeacherMode()">🚪 ออกโหมดครู</button>
         </div>
       </div>
 
       <div class="dash-stats-strip">
         <div class="stat-tile">
           <div class="stat-icon" style="background:#eef2ff;">👥</div>
-          <div><div class="stat-val">${totalStudents}</div><div class="stat-lbl">นักศึกษาที่บันทึกในเครื่องนี้</div></div>
+          <div><div class="stat-val">${totalStudents}</div><div class="stat-lbl">นักศึกษาทั้งหมด (Cloud)</div></div>
         </div>
         <div class="stat-tile">
           <div class="stat-icon" style="background:#ecfdf5;">⚡</div>
@@ -89,8 +95,46 @@ window.TeacherModule = (function () {
           <div><div class="stat-val">${avgPre} / 13</div><div class="stat-lbl">ค่าเฉลี่ย Pre-Test</div></div>
         </div>
         <div class="stat-tile">
-          <div class="stat-icon" style="background:#eff6ff;">📈</div>
-          <div><div class="stat-val">${avgPost} / 13</div><div class="stat-lbl">ค่าเฉลี่ย Post-Test</div></div>
+          <div class="stat-icon" style="background:#eff6ff;">🔒</div>
+          <div><div class="stat-val">${lockedSet.size} / 13</div><div class="stat-lbl">บทเรียนที่ล็อกไว้</div></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:22px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <h3 style="margin-bottom:2px;">🔒 ควบคุมการล็อก / ปลดล็อกด่าน (ซิงก์ Cloud ทันที)</h3>
+            <p style="font-size:13px; color:var(--text-muted); margin:0;">คลิกที่แต่ละบทเรียนเพื่อสลับ <strong>เปิดด่าน / ล็อกด่าน</strong> — เครื่องของนักศึกษาทุกคนจะอัปเดตอัตโนมัติ</p>
+          </div>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-success btn-sm" id="btn-unlock-all">🔓 เปิดครบ 13 บท</button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-open-zone1">📌 เปิดเฉพาะโซน 1</button>
+            <button type="button" class="btn btn-danger btn-sm" id="btn-lock-all">🔒 ล็อกทั้งหมด</button>
+          </div>
+        </div>
+
+        <div class="teacher-lock-grid">
+          ${allUnits.map(u => {
+            const isLocked = lockedSet.has(u.id);
+            return `
+              <button type="button" class="lock-unit-btn ${isLocked ? "is-locked" : ""}" data-unit="${u.id}">
+                <div class="lu-top">
+                  <span class="lu-code">${u.icon} บทที่ ${u.id}</span>
+                  <span class="lu-status">${isLocked ? "🔒 ล็อกอยู่" : "🔓 เปิดอยู่"}</span>
+                </div>
+                <div class="lu-title">${u.title}</div>
+              </button>
+            `;
+          }).join("")}
+        </div>
+
+        <div class="teacher-extra-locks">
+          <button type="button" class="btn btn-sm ${settings.lockPostTest ? "btn-danger" : "btn-outline"}" id="btn-toggle-posttest">
+            ${settings.lockPostTest ? "🔒 Post-Test: ล็อกอยู่ (คลิกเพื่อเปิดสอบ)" : "🔓 Post-Test: เปิดให้สอบอยู่ (คลิกเพื่อล็อก)"}
+          </button>
+          <button type="button" class="btn btn-sm ${settings.lockArcade ? "btn-danger" : "btn-outline"}" id="btn-toggle-arcade">
+            ${settings.lockArcade ? "🔒 มินิเกมส์ Office Rush: ล็อกอยู่ (คลิกเพื่อเปิด)" : "🔓 มินิเกมส์ Office Rush: เปิดอยู่ (คลิกเพื่อล็อก)"}
+          </button>
         </div>
       </div>
 
@@ -126,7 +170,7 @@ window.TeacherModule = (function () {
                       <td>${p.classRoom} (${p.department})</td>
                       <td>${rank.icon} ${rank.title}</td>
                       <td><strong>${p.xp}</strong></td>
-                      <td>${(p.badges || []).length}/10</td>
+                      <td>${(p.badges || []).length}/${window.GAME_DATA.badges.length}</td>
                       <td>${p.preTestScore !== null && p.preTestScore !== undefined ? p.preTestScore + "/13" : "-"}</td>
                       <td>${p.postTestScore !== null && p.postTestScore !== undefined ? p.postTestScore + "/13" : "-"}</td>
                       <td><span class="mini-pill ${doneCnt === 13 ? "ok" : ""}">${doneCnt} / 13 บท</span></td>
@@ -160,6 +204,44 @@ window.TeacherModule = (function () {
         </div>
       </div>
     `;
+
+    container.querySelectorAll(".lock-unit-btn").forEach(btn => {
+      btn.onclick = () => {
+        App.toggleUnitLock(Number(btn.dataset.unit));
+      };
+    });
+
+    container.querySelector("#btn-unlock-all").onclick = async () => {
+      SoundFX.click();
+      await App.saveCourseSettings({ ...settings, lockedUnits: [] });
+      App.showToast("🔓 ปลดล็อกครบทั้ง 13 บทเรียนแล้ว (ซิงก์ Cloud)", "xp");
+    };
+
+    container.querySelector("#btn-open-zone1").onclick = async () => {
+      SoundFX.click();
+      await App.saveCourseSettings({ ...settings, lockedUnits: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13] });
+      App.showToast("📌 เปิดเฉพาะโซน 1 (บทที่ 1–3) และล็อกบทที่ 4–13 แล้ว", "xp");
+    };
+
+    container.querySelector("#btn-lock-all").onclick = async () => {
+      SoundFX.click();
+      await App.saveCourseSettings({ ...settings, lockedUnits: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13] });
+      App.showToast("🔒 ล็อกบทเรียนทั้งหมด 13 บทแล้ว (ซิงก์ Cloud)", "xp");
+    };
+
+    container.querySelector("#btn-toggle-posttest").onclick = async () => {
+      SoundFX.click();
+      const next = !settings.lockPostTest;
+      await App.saveCourseSettings({ ...settings, lockPostTest: next });
+      App.showToast(next ? "🔒 ล็อกแบบทดสอบ Post-Test แล้ว" : "🔓 เปิดแบบทดสอบ Post-Test แล้ว", "xp");
+    };
+
+    container.querySelector("#btn-toggle-arcade").onclick = async () => {
+      SoundFX.click();
+      const next = !settings.lockArcade;
+      await App.saveCourseSettings({ ...settings, lockArcade: next });
+      App.showToast(next ? "🔒 ล็อกหมวดมินิเกมส์ Office Rush แล้ว" : "🔓 เปิดหมวดมินิเกมส์ Office Rush แล้ว", "xp");
+    };
 
     container.querySelector("#btn-export-csv").onclick = () => {
       SoundFX.click();

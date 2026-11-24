@@ -2057,3 +2057,108 @@ body,
 .cloud-sync-badge.error {
   background: rgba(244, 63, 94, 0.3);
 }
+
+
+/* ========== Teacher Mode Full-Access & Stage Lock Controls ========== */
+.teacher-mode-strip {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow);
+}
+
+.unit-card.locked-unit {
+  opacity: 0.78;
+  border-style: dashed;
+}
+
+.locked-card {
+  opacity: 0.72;
+}
+
+.lock-inline-tag {
+  display: inline-block;
+  font-size: 11px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  padding: 2px 8px;
+  border-radius: 999px;
+  margin-left: 4px;
+}
+
+.teacher-lock-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(195px, 1fr));
+  gap: 10px;
+}
+
+.lock-unit-btn {
+  text-align: left;
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1.5px solid var(--success);
+  background: var(--success-soft);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.lock-unit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.lock-unit-btn.is-locked {
+  border-color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.lock-unit-btn .lu-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.lock-unit-btn .lu-code {
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.lock-unit-btn .lu-status {
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.lock-unit-btn.is-locked .lu-status {
+  color: var(--danger);
+}
+
+.lock-unit-btn .lu-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teacher-extra-locks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
+}

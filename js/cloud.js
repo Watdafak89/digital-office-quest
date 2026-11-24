@@ -263,6 +263,63 @@ window.CloudSync = (() => {
     });
   }
 
+  async function fetchCourseSettings() {
+    if (!init()) return null;
+    try {
+      if (!auth.currentUser) {
+        await auth.signInAnonymously();
+      }
+      const snap = await db.collection("settings").doc("course").get();
+      if (!snap.exists) return null;
+      return snap.data();
+    } catch (err) {
+      console.warn("[CloudSync] Fetch course settings failed:", err);
+      return null;
+    }
+  }
+
+  async function saveCourseSettings(settings) {
+    if (!init()) return false;
+    try {
+      if (!auth.currentUser) {
+        await auth.signInAnonymously();
+      }
+      const lockedUnits = Array.isArray(settings.lockedUnits)
+        ? settings.lockedUnits.map(n => Math.floor(Number(n))).filter(n => n >= 1 && n <= 13).slice(0, 13)
+        : [];
+      const payload = {
+        lockedUnits,
+        lockArcade: !!settings.lockArcade,
+        lockPostTest: !!settings.lockPostTest,
+        updatedAt: Date.now()
+      };
+      await db.collection("settings").doc("course").set(payload, { merge: true });
+      return true;
+    } catch (err) {
+      console.warn("[CloudSync] Save course settings failed:", err);
+      return false;
+    }
+  }
+
+  let unsubCourse = null;
+  async function subscribeCourseSettings(cb) {
+    if (!init()) return;
+    try {
+      if (!auth.currentUser) {
+        await auth.signInAnonymously();
+      }
+      if (unsubCourse) unsubCourse();
+      unsubCourse = db.collection("settings").doc("course").onSnapshot(
+        (snap) => {
+          if (snap.exists) cb(snap.data());
+        },
+        (err) => console.warn("[CloudSync] Course settings listener error:", err)
+      );
+    } catch (err) {
+      console.warn("[CloudSync] Subscribe course settings failed:", err);
+    }
+  }
+
   return {
     init,
     isAvailable,
@@ -272,6 +329,9 @@ window.CloudSync = (() => {
     savePlayer,
     fetchCurrentPlayer,
     fetchAllPlayers,
+    fetchCourseSettings,
+    saveCourseSettings,
+    subscribeCourseSettings,
     logout,
     onAuthStateReady
   };

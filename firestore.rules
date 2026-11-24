@@ -32,6 +32,24 @@ rules_version = '2';
 //   - createdAt:     int (>= 0) or timestamp (required, immutable)
 //   - updatedAt:     int (>= 0) or timestamp (required)
 //
+// Collection: settings
+// Document ID: course (only 'course' is permitted)
+// Access Pattern:
+//   - Contains non-sensitive course configuration for Teacher Mode
+//     stage/chapter locking (no PII).
+//   - Read: Any authenticated user (students read in real time to see
+//     locked chapters; teachers read in Teacher Mode via Anonymous Auth).
+//   - Create / Update: Any authenticated user with strict schema and
+//     size bounds (Teacher Mode uses client-side PIN + Anonymous Auth
+//     on Spark plan without custom claims/Cloud Functions).
+//   - Delete: Denied (never allow deleting course settings).
+//
+// Fields:
+//   - lockedUnits:   list   (required, size <= 13, elements int in 1..13)
+//   - lockArcade:    bool   (optional)
+//   - lockPostTest:  bool   (optional)
+//   - updatedAt:     int (>= 0) or timestamp (required)
+//
 // ===============================================================
 
 service cloud.firestore {
@@ -155,6 +173,21 @@ service cloud.firestore {
              isValidTimestampOrMillis(data.updatedAt);
     }
 
+    function isValidCourseSettings(data) {
+      let allowedFields = ['lockedUnits', 'lockArcade', 'lockPostTest', 'updatedAt'];
+      let requiredFields = ['lockedUnits', 'updatedAt'];
+      let validUnitIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13];
+
+      return hasOnlyAllowedFields(allowedFields) &&
+             hasRequiredFields(requiredFields) &&
+             data.lockedUnits is list &&
+             data.lockedUnits.size() <= 13 &&
+             data.lockedUnits.hasOnly(validUnitIds) &&
+             (!('lockArcade' in data) || data.lockArcade is bool) &&
+             (!('lockPostTest' in data) || data.lockPostTest is bool) &&
+             isValidTimestampOrMillis(data.updatedAt);
+    }
+
     // ===============================================================
     // Collection Rules
     // ===============================================================
@@ -179,6 +212,26 @@ service cloud.firestore {
 
       // Only the non-anonymous authenticated owner may delete their own profile.
       allow delete: if isNonAnonymousOwner(uid) && isDocOwner();
+    }
+
+    match /settings/{settingId} {
+      // Only the 'course' settings document is accessible.
+      // Students read in real time to see locked chapters; teachers read/write in Teacher Mode.
+      // Note: Teacher Mode uses a client-side PIN + Firebase Anonymous Auth (Spark plan,
+      // no custom claims/Cloud Functions), so writes require authentication plus strict
+      // schema, value-set, and size validation.
+      allow read: if isAuthenticated() && settingId == 'course';
+
+      allow create: if isAuthenticated() &&
+                       settingId == 'course' &&
+                       isValidCourseSettings(request.resource.data);
+
+      allow update: if isAuthenticated() &&
+                       settingId == 'course' &&
+                       isValidCourseSettings(request.resource.data);
+
+      // Never allow deleting course settings.
+      allow delete: if false;
     }
 
     // Default deny all other collections and subcollections

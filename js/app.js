@@ -4,6 +4,7 @@ window.App = (function () {
   const STORAGE_KEY = "officequest13_players_v1";
   const ACTIVE_KEY = "officequest13_active_id";
   const THEME_KEY = "officequest13_theme_v1";
+  const COURSE_SETTINGS_KEY = "officequest13_course_settings_v1";
 
   let players = [];
   let activePlayerId = null;
@@ -12,6 +13,24 @@ window.App = (function () {
   let currentUnitTab = "briefing"; // briefing | minigame | quiz
   let selectedZoneFilter = 0; // 0 = all, 1..4 = specific zone
   let currentTheme = "light";
+  let isTeacherMode = false;
+  let courseSettings = { lockedUnits: [], lockArcade: false, lockPostTest: false };
+
+  const teacherPreviewPlayer = {
+    id: "__teacher_preview__",
+    name: "ครูผู้สอน (โหมดดูระบบ)",
+    studentId: "TEACHER",
+    classRoom: "ผู้สอนรายวิชา",
+    department: "การจัดการสำนักงานดิจิทัล",
+    avatarId: "av6",
+    xp: 3000,
+    badges: [],
+    preTestScore: 13,
+    postTestScore: 13,
+    units: {},
+    arcade: { bestScore: 0, bestCombo: 0, plays: 0, lastScore: 0 },
+    isTeacherPreview: true
+  };
 
   // ---------- Theme Helpers ----------
   function applyTheme(theme) {
@@ -66,8 +85,8 @@ window.App = (function () {
     else localStorage.removeItem(ACTIVE_KEY);
 
     if (!skipCloud && window.CloudSync && CloudSync.isAvailable()) {
-      const p = getActivePlayer();
-      if (p) CloudSync.savePlayer(p);
+      const p = players.find(x => x.id === activePlayerId) || null;
+      if (p && !p.isTeacherPreview) CloudSync.savePlayer(p);
     }
   }
 
@@ -90,8 +109,74 @@ window.App = (function () {
     return true;
   }
 
+  function loadCourseSettings() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(COURSE_SETTINGS_KEY) || "null");
+      if (raw && typeof raw === "object") {
+        courseSettings = {
+          lockedUnits: Array.isArray(raw.lockedUnits) ? raw.lockedUnits.map(Number) : [],
+          lockArcade: !!raw.lockArcade,
+          lockPostTest: !!raw.lockPostTest
+        };
+      }
+    } catch {}
+  }
+
+  function applyCourseSettings(remote) {
+    if (!remote || typeof remote !== "object") return;
+    courseSettings = {
+      lockedUnits: Array.isArray(remote.lockedUnits) ? remote.lockedUnits.map(Number) : [],
+      lockArcade: !!remote.lockArcade,
+      lockPostTest: !!remote.lockPostTest
+    };
+    try { localStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(courseSettings)); } catch {}
+    if (currentView === "dashboard" || currentView === "teacher") {
+      render();
+    }
+  }
+
+  async function saveCourseSettings(nextSettings) {
+    courseSettings = {
+      lockedUnits: Array.isArray(nextSettings.lockedUnits) ? nextSettings.lockedUnits.map(Number) : [],
+      lockArcade: !!nextSettings.lockArcade,
+      lockPostTest: !!nextSettings.lockPostTest
+    };
+    try { localStorage.setItem(COURSE_SETTINGS_KEY, JSON.stringify(courseSettings)); } catch {}
+    if (window.CloudSync && CloudSync.isAvailable()) {
+      await CloudSync.saveCourseSettings(courseSettings);
+    }
+    render();
+  }
+
+  function getCourseSettings() {
+    return courseSettings;
+  }
+
+  function isUnitLocked(unitId) {
+    return (courseSettings.lockedUnits || []).includes(Number(unitId));
+  }
+
+  async function toggleUnitLock(unitId) {
+    if (!isTeacherMode) return;
+    SoundFX.click();
+    const id = Number(unitId);
+    const set = new Set(courseSettings.lockedUnits || []);
+    const willLock = !set.has(id);
+    if (willLock) set.add(id);
+    else set.delete(id);
+    await saveCourseSettings({ ...courseSettings, lockedUnits: Array.from(set).sort((a, b) => a - b) });
+    showToast(willLock ? `🔒 ล็อกบทที่ ${id} แล้ว (ซิงก์ Cloud)` : `🔓 ปลดล็อกบทที่ ${id} แล้ว (ซิงก์ Cloud)`, "xp");
+  }
+
+  function isTeacher() {
+    return isTeacherMode;
+  }
+
   function getActivePlayer() {
-    return players.find(p => p.id === activePlayerId) || null;
+    const student = players.find(p => p.id === activePlayerId) || null;
+    if (student) return student;
+    if (isTeacherMode) return teacherPreviewPlayer;
+    return null;
   }
 
   function getAllPlayers() {
@@ -259,7 +344,7 @@ window.App = (function () {
   function renderHUD() {
     const header = document.getElementById("app-header");
     const p = getActivePlayer();
-    if (!p || currentView === "welcome") {
+    if ((!p && !isTeacherMode) || currentView === "welcome") {
       header.classList.add("hidden");
       return;
     }
@@ -275,12 +360,12 @@ window.App = (function () {
       <div class="hud-avatar" style="background:${av.bg}">${renderAvatarContent(av)}</div>
       <div class="hud-info">
         <div class="hud-name-row">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</span>
-          <span class="hud-rank-tag" style="background:${rank.color}">${rank.icon} Lv.${rank.level} ${rank.title}</span>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${isTeacherMode ? "👩‍🏫 ครูผู้สอน" : p.name}</span>
+          <span class="hud-rank-tag" style="background:${isTeacherMode ? "#0f172a" : rank.color}">${isTeacherMode ? "👩‍🏫 โหมดครูผู้สอน" : `${rank.icon} Lv.${rank.level} ${rank.title}`}</span>
         </div>
         <div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
         <div class="hud-xp-meta">
-          <span>⚡ ${p.xp} XP ${next ? `/ ${next.minXp} XP` : "(MAX RANK!)"}</span>
+          <span>${isTeacherMode ? `🔒 ล็อกอยู่ ${(courseSettings.lockedUnits || []).length}/13 บท` : `⚡ ${p.xp} XP ${next ? `/ ${next.minXp} XP` : "(MAX RANK!)"}`}</span>
           <span>🏅 ${(p.badges || []).length}/${window.GAME_DATA.badges.length} • 📚 ${countCompletedUnits(p)}/13 บท</span>
         </div>
       </div>
@@ -596,6 +681,22 @@ window.App = (function () {
       : window.GAME_DATA.zones.filter(z => z.id === selectedZoneFilter);
 
     main.innerHTML = `
+      ${isTeacherMode ? `
+        <div class="teacher-mode-strip">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:20px;">👩‍🏫</span>
+            <div>
+              <strong>กำลังใช้งานในโหมดครูผู้สอน</strong>
+              <span style="font-size:13px; opacity:0.9;"> — ดูเนื้อหา มินิเกมส์ และแบบทดสอบได้ทุกส่วนเหมือนนักเรียน พร้อมกดล็อก/ปลดล็อกด่านได้ทันที</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-sm btn-warning" onclick="App.navigate('teacher')">📊 แดชบอร์ดครู & จัดการล็อกด่าน</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,0.2); color:#fff;" onclick="App.exitTeacherMode()">🚪 ออกจากโหมดครู</button>
+          </div>
+        </div>
+      ` : ""}
+
       <div class="dash-banner">
         <div>
           <span class="hero-tag" style="margin-bottom:8px;">🏢 แผนที่ภารกิจครบ 13 บทเรียน ปวช.</span>
@@ -640,28 +741,30 @@ window.App = (function () {
           </button>
         </div>
 
-        <div class="assess-card ${p.postTestScore !== null ? "done" : ""}">
+        <div class="assess-card ${p.postTestScore !== null ? "done" : ""} ${courseSettings.lockPostTest && !isTeacherMode ? "locked-card" : ""}">
           <div>
-            <div style="font-family:var(--font-head); font-weight:700; font-size:16px;">🎓 แบบทดสอบหลังเรียน (Post-Test)</div>
-            <div style="font-size:13px; color:var(--text-muted);">วัดผลสัมฤทธิ์ 13 ข้อ • ${p.postTestScore !== null ? `ได้ ${p.postTestScore}/13 คะแนน` : "ทำเมื่อเรียนครบหรือต้องการวัดผลหลังเรียน (+100 XP)"}</div>
+            <div style="font-family:var(--font-head); font-weight:700; font-size:16px;">🎓 แบบทดสอบหลังเรียน (Post-Test) ${courseSettings.lockPostTest ? `<span class="lock-inline-tag">🔒 ล็อก</span>` : ""}</div>
+            <div style="font-size:13px; color:var(--text-muted);">${courseSettings.lockPostTest && !isTeacherMode ? "🔒 ครูผู้สอนล็อกแบบทดสอบหลังเรียนไว้ชั่วคราว กรุณารอครูเปิดสอบ" : `วัดผลสัมฤทธิ์ 13 ข้อ • ${p.postTestScore !== null ? `ได้ ${p.postTestScore}/13 คะแนน` : "ทำเมื่อเรียนครบหรือต้องการวัดผลหลังเรียน (+100 XP)"}`}</div>
           </div>
-          <button class="btn btn-sm ${p.postTestScore !== null ? "btn-success" : "btn-warning"}" onclick="App.startAssessment('post')">
-            ${p.postTestScore !== null ? "ทำใหม่พัฒนาคะแนน" : "เริ่มทำ Post-Test"}
+          <button class="btn btn-sm ${courseSettings.lockPostTest && !isTeacherMode ? "btn-outline" : (p.postTestScore !== null ? "btn-success" : "btn-warning")}" ${courseSettings.lockPostTest && !isTeacherMode ? "disabled" : ""} onclick="App.startAssessment('post')">
+            ${courseSettings.lockPostTest && !isTeacherMode ? "🔒 รอครูเปิดสอบ" : (p.postTestScore !== null ? "ทำใหม่พัฒนาคะแนน" : "เริ่มทำ Post-Test")}
           </button>
         </div>
       </div>
 
-      <div class="arcade-promo-bar">
+      <div class="arcade-promo-bar ${courseSettings.lockArcade && !isTeacherMode ? "locked-card" : ""}">
         <div style="display:flex; align-items:center; gap:14px;">
-          <div class="arcade-promo-icon">🎮</div>
+          <div class="arcade-promo-icon">${courseSettings.lockArcade ? "🔒" : "🎮"}</div>
           <div>
-            <div style="font-family:var(--font-head); font-weight:700; font-size:16px; color:#fff;">หมวดมินิเกมส์ท้าประลอง: Office Rush (60 วินาที) + ตารางคะแนน</div>
+            <div style="font-family:var(--font-head); font-weight:700; font-size:16px; color:#fff;">หมวดมินิเกมส์ท้าประลอง: Office Rush (60 วินาที) + ตารางคะแนน ${courseSettings.lockArcade ? "(🔒 ล็อกอยู่)" : ""}</div>
             <div style="font-size:13px; color:rgba(255,255,255,0.88);">
-              แข่งตอบไวสะสมคอมโบ ปลดล็อก 3 เหรียญตราพิเศษ และชิงอันดับ 1 บนตารางคะแนน! • สถิติสูงสุดของคุณ: <strong>${(p.arcade?.bestScore || 0).toLocaleString()} คะแนน</strong>
+              ${courseSettings.lockArcade && !isTeacherMode ? "🔒 ครูผู้สอนล็อกหมวดมินิเกมส์ไว้ชั่วคราว กรุณารอครูเปิดใช้งาน" : `แข่งตอบไวสะสมคอมโบ ปลดล็อก 3 เหรียญตราพิเศษ และชิงอันดับ 1 บนตารางคะแนน! • สถิติสูงสุดของคุณ: <strong>${(p.arcade?.bestScore || 0).toLocaleString()} คะแนน</strong>`}
             </div>
           </div>
         </div>
-        <button class="btn btn-warning btn-sm" style="flex-shrink:0;" onclick="App.navigate('arcade')">🏆 เข้าเล่น & ดูตารางคะแนน ➔</button>
+        <button class="btn btn-warning btn-sm" style="flex-shrink:0;" ${courseSettings.lockArcade && !isTeacherMode ? "disabled" : ""} onclick="App.navigate('arcade')">
+          ${courseSettings.lockArcade && !isTeacherMode ? "🔒 รอครูเปิดด่าน" : "🏆 เข้าเล่น & ดูตารางคะแนน ➔"}
+        </button>
       </div>
 
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; align-items:center;">
@@ -694,12 +797,13 @@ window.App = (function () {
               ${zoneUnits.map(u => {
                 const st = p.units?.[u.id] || {};
                 const completed = isUnitCompleted(p, u.id);
+                const locked = isUnitLocked(u.id);
                 return `
-                  <div class="unit-card ${completed ? "completed" : ""}">
+                  <div class="unit-card ${completed ? "completed" : ""} ${locked ? "locked-unit" : ""}">
                     <div>
                       <div class="unit-top-bar">
-                        <span class="unit-code-pill" style="background:${u.color}">${u.code}</span>
-                        <span class="unit-page-ref">📖 ${u.pageRef}</span>
+                        <span class="unit-code-pill" style="background:${locked ? "#64748b" : u.color}">${locked ? "🔒 " : ""}${u.code}</span>
+                        <span class="unit-page-ref">${locked ? "🔒 ล็อกโดยครู" : `📖 ${u.pageRef}`}</span>
                       </div>
                       <div class="unit-icon-title" style="margin-top:10px;">
                         <div class="unit-emoji">${u.icon}</div>
@@ -715,9 +819,22 @@ window.App = (function () {
                         <span class="mini-pill ${st.minigameDone ? "ok" : ""}">${st.minigameDone ? "✓ มินิเกมผ่าน" : "🕹️ รอมินิเกม"}</span>
                         <span class="mini-pill ${st.quizDone ? "ok" : ""}">${st.quizDone ? `✓ สอบ ${st.quizScore}/4` : "📝 รอทดสอบ"}</span>
                       </div>
-                      <button class="btn btn-sm ${completed ? "btn-success" : "btn-primary"}" style="width:100%;" onclick="App.openUnit(${u.id})">
-                        ${completed ? "✓ ทบทวนบทเรียน" : "เข้าสู่ภารกิจ ➔"}
-                      </button>
+                      ${isTeacherMode ? `
+                        <div style="display:flex; gap:6px;">
+                          <button class="btn btn-sm btn-primary" style="flex:1;" onclick="App.openUnit(${u.id})">👁️ ดูบทเรียน</button>
+                          <button class="btn btn-sm ${locked ? "btn-success" : "btn-danger"}" onclick="App.toggleUnitLock(${u.id})" title="${locked ? "ปลดล็อกด่านนี้" : "ล็อกด่านนี้"}">
+                            ${locked ? "🔓 ปลดล็อก" : "🔒 ล็อก"}
+                          </button>
+                        </div>
+                      ` : (locked ? `
+                        <button class="btn btn-sm btn-outline" style="width:100%; opacity:0.75; cursor:not-allowed;" onclick="App.openUnit(${u.id})">
+                          🔒 รอครูผู้สอนเปิดด่าน
+                        </button>
+                      ` : `
+                        <button class="btn btn-sm ${completed ? "btn-success" : "btn-primary"}" style="width:100%;" onclick="App.openUnit(${u.id})">
+                          ${completed ? "✓ ทบทวนบทเรียน" : "เข้าสู่ภารกิจ ➔"}
+                        </button>
+                      `)}
                     </div>
                   </div>
                 `;
@@ -731,6 +848,11 @@ window.App = (function () {
 
   // ---------- Unit View (Briefing / Minigame / Quiz) ----------
   function openUnit(unitId, tab = "briefing") {
+    if (!isTeacherMode && isUnitLocked(unitId)) {
+      SoundFX.wrong();
+      showToast(`🔒 บทที่ ${unitId} ถูกล็อกโดยครูผู้สอน กรุณารอครูเปิดด่านครับ`, "");
+      return;
+    }
     SoundFX.click();
     currentUnitId = unitId;
     currentUnitTab = tab;
@@ -937,6 +1059,11 @@ window.App = (function () {
 
   // ---------- Pre-Test / Post-Test (13 Questions) ----------
   function startAssessment(mode) {
+    if (mode === "post" && !isTeacherMode && courseSettings.lockPostTest) {
+      SoundFX.wrong();
+      showToast("🔒 แบบทดสอบหลังเรียนถูกล็อกโดยครูผู้สอน กรุณารอครูเปิดสอบครับ", "");
+      return;
+    }
     SoundFX.click();
     const p = getActivePlayer();
     if (!p) return navigate("welcome");
@@ -1185,6 +1312,10 @@ window.App = (function () {
   // ---------- Teacher Mode Auth ----------
   function openTeacherAuth() {
     SoundFX.click();
+    if (isTeacherMode) {
+      navigate("teacher");
+      return;
+    }
     showModal(`
       <div style="font-size:48px; margin-bottom:6px;">👩‍🏫</div>
       <h2 style="margin-bottom:6px;">เข้าสู่โหมดครูผู้สอน</h2>
@@ -1202,8 +1333,10 @@ window.App = (function () {
       if (inp.value.trim() === TeacherModule.getPassword()) {
         SoundFX.correct();
         closeModal();
+        isTeacherMode = true;
         currentView = "teacher";
         render();
+        showToast("👩‍🏫 เข้าสู่โหมดครูผู้สอนแล้ว (ดูได้ทุกหน้า + ล็อกด่านได้)", "xp");
       } else {
         SoundFX.wrong();
         document.getElementById("teacher-auth-err").textContent = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
@@ -1215,11 +1348,16 @@ window.App = (function () {
 
   function exitTeacherMode() {
     SoundFX.click();
-    navigate(getActivePlayer() ? "dashboard" : "welcome");
+    isTeacherMode = false;
+    const realStudent = players.find(p => p.id === activePlayerId) || null;
+    navigate(realStudent ? "dashboard" : "welcome");
   }
 
   function logoutStudent() {
     SoundFX.click();
+    if (isTeacherMode) {
+      return exitTeacherMode();
+    }
     if (window.CloudSync) CloudSync.logout();
     activePlayerId = null;
     saveState(true);
@@ -1234,6 +1372,11 @@ window.App = (function () {
 
   // ---------- Navigation Router ----------
   function navigate(view) {
+    if (view === "arcade" && !isTeacherMode && courseSettings.lockArcade) {
+      SoundFX.wrong();
+      showToast("🔒 หมวดมินิเกมส์ถูกล็อกโดยครูผู้สอน กรุณารอครูเปิดใช้งาน", "");
+      return;
+    }
     if (window.ArcadeModule) ArcadeModule.stopTimer();
     currentView = view;
     render();
@@ -1256,7 +1399,6 @@ window.App = (function () {
     if (currentView === "profile") return renderProfile();
     if (currentView === "certificate") return renderCertificate();
     if (currentView === "teacher") {
-      document.getElementById("app-header").classList.add("hidden");
       TeacherModule.render(main);
       refreshCloudPlayers().then(ok => {
         if (ok && currentView === "teacher") TeacherModule.render(main);
@@ -1267,6 +1409,7 @@ window.App = (function () {
 
   function init() {
     loadTheme();
+    loadCourseSettings();
     loadState();
     currentView = getActivePlayer() ? "dashboard" : "welcome";
     render();
@@ -1280,6 +1423,7 @@ window.App = (function () {
           if (currentView === "welcome") currentView = "dashboard";
           render();
         }
+        CloudSync.subscribeCourseSettings(applyCourseSettings);
       });
     }
   }
@@ -1291,6 +1435,7 @@ window.App = (function () {
     toggleSound, toggleTheme, openTeacherAuth, exitTeacherMode, logoutStudent,
     showToast, showModal, closeModal,
     getActivePlayer, getAllPlayers, deletePlayer, getRank, countCompletedUnits,
-    recordArcadeResult
+    recordArcadeResult,
+    isTeacher, getCourseSettings, isUnitLocked, toggleUnitLock, saveCourseSettings
   };
 })();
