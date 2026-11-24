@@ -277,7 +277,6 @@ window.App = (function () {
       <div class="welcome-wrap">
         <div class="welcome-hero">
           <div class="hero-top">
-            <span class="hero-tag">🎮 เกมมิฟิเคชัน ระดับ ปวช. • ครบ 13 บทเรียน</span>
             <h1>OfficeQuest 13</h1>
             <p>พิชิตสำนักงานดิจิทัล — รายวิชา <strong>การใช้เครื่องใช้สำนักงานดิจิทัล</strong></p>
           </div>
