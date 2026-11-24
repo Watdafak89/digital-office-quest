@@ -253,8 +253,8 @@ window.App = (function () {
         </div>
 
         <div class="welcome-form-card">
-          <h2 style="margin-bottom:4px;">🚀 ลงทะเบียนพนักงานใหม่</h2>
-          <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">กรอกข้อมูลเพื่อแสดงบนบัตรพนักงานและเกียรติบัตรดิจิทัล</p>
+          <h2 style="margin-bottom:4px; text-align:center;">🚀 ลงทะเบียนพนักงานใหม่</h2>
+          <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px; text-align:center;">กรอกข้อมูลเพื่อแสดงบนบัตรพนักงานและเกียรติบัตรดิจิทัล</p>
 
           <form id="reg-form">
             <div class="form-group">
