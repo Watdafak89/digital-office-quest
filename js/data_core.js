@@ -46,12 +46,12 @@ window.GAME_DATA = {
   ],
 
   avatars: [
-    { id: "av1", emoji: "👩‍💻", label: "สายดิจิทัล", bg: "linear-gradient(135deg, #6366f1, #8b5cf6)" },
-    { id: "av2", emoji: "👨‍💼", label: "สายธุรการโปร", bg: "linear-gradient(135deg, #0ea5e9, #2563eb)" },
-    { id: "av3", emoji: "🧑‍🔧", label: "สายช่างดูแลเครื่อง", bg: "linear-gradient(135deg, #f59e0b, #ea580c)" },
-    { id: "av4", emoji: "👩‍🎨", label: "สายออกแบบรูปเล่ม", bg: "linear-gradient(135deg, #ec4899, #f43f5e)" },
-    { id: "av5", emoji: "🧑‍🚀", label: "สายเน็ตและคลาวด์", bg: "linear-gradient(135deg, #10b981, #0d9488)" },
-    { id: "av6", emoji: "🤖", label: "สายสมาร์ตออฟฟิศ", bg: "linear-gradient(135deg, #475569, #1e293b)" }
+    { id: "av1", gender: "female", img: "assets/avatars/av1.jpg", emoji: "👩‍💻", label: "สายดิจิทัล", bg: "linear-gradient(135deg, #6366f1, #8b5cf6)" },
+    { id: "av2", gender: "male",   img: "assets/avatars/av2.jpg", emoji: "👨‍💼", label: "สายธุรการโปร", bg: "linear-gradient(135deg, #0ea5e9, #2563eb)" },
+    { id: "av3", gender: "male",   img: "assets/avatars/av3.jpg", emoji: "🧑‍🔧", label: "สายช่างดูแลเครื่อง", bg: "linear-gradient(135deg, #f59e0b, #ea580c)" },
+    { id: "av4", gender: "female", img: "assets/avatars/av4.jpg", emoji: "👩‍🎨", label: "สายออกแบบรูปเล่ม", bg: "linear-gradient(135deg, #ec4899, #f43f5e)" },
+    { id: "av5", gender: "male",   img: "assets/avatars/av5.jpg", emoji: "🧑‍🚀", label: "สายเน็ตและคลาวด์", bg: "linear-gradient(135deg, #10b981, #0d9488)" },
+    { id: "av6", gender: "female", img: "assets/avatars/av6.jpg", emoji: "🤖", label: "สายสมาร์ตออฟฟิศ", bg: "linear-gradient(135deg, #3b82f6, #1e293b)" }
   ],
 
   ranks: [

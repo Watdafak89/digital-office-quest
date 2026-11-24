@@ -164,6 +164,13 @@ window.App = (function () {
     if (!muted) SoundFX.click();
   }
 
+  function renderAvatarContent(av) {
+    if (av && av.img) {
+      return `<img src="${av.img}" alt="${av.label || "Avatar"}" class="avatar-img" loading="lazy" />`;
+    }
+    return av ? av.emoji : "👤";
+  }
+
   // ---------- Header / HUD ----------
   function renderHUD() {
     const header = document.getElementById("app-header");
@@ -181,7 +188,7 @@ window.App = (function () {
       : 100;
 
     document.getElementById("hud-player-stats").innerHTML = `
-      <div class="hud-avatar" style="background:${av.bg}">${av.emoji}</div>
+      <div class="hud-avatar" style="background:${av.bg}">${renderAvatarContent(av)}</div>
       <div class="hud-info">
         <div class="hud-name-row">
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${p.name}</span>
@@ -244,12 +251,20 @@ window.App = (function () {
             </div>
 
             <div class="form-group">
-              <label>เลือกตัวละครประจำตัว (Avatar)</label>
+              <div class="avatar-header-row">
+                <label>เลือกตัวละครประจำตัว (อวตารอนิเมะ)</label>
+                <div class="avatar-filter-tabs" id="avatar-filter-tabs">
+                  <button type="button" class="avatar-filter-btn active" data-filter="all">ทั้งหมด</button>
+                  <button type="button" class="avatar-filter-btn" data-filter="female">หญิง</button>
+                  <button type="button" class="avatar-filter-btn" data-filter="male">ชาย</button>
+                </div>
+              </div>
               <div class="avatar-grid" id="avatar-picker">
                 ${window.GAME_DATA.avatars.map((a, idx) => `
-                  <div class="avatar-opt ${idx === 0 ? "selected" : ""}" data-av="${a.id}">
-                    <div class="av-circle" style="background:${a.bg}">${a.emoji}</div>
-                    <span>${a.label}</span>
+                  <div class="avatar-opt ${idx === 0 ? "selected" : ""}" data-av="${a.id}" data-gender="${a.gender || "all"}">
+                    <span class="av-gender-badge ${a.gender === "male" ? "male" : "female"}">${a.gender === "male" ? "♂ ชาย" : "♀ หญิง"}</span>
+                    <div class="av-circle" style="background:${a.bg}">${renderAvatarContent(a)}</div>
+                    <span class="av-label">${a.label}</span>
                   </div>
                 `).join("")}
               </div>
@@ -269,7 +284,7 @@ window.App = (function () {
                 return `
                   <div class="saved-player-chip" data-pid="${pl.id}">
                     <div style="display:flex; align-items:center; gap:10px;">
-                      <div class="hud-avatar" style="width:32px; height:32px; font-size:16px; background:${av.bg}">${av.emoji}</div>
+                      <div class="hud-avatar" style="width:36px; height:36px; font-size:16px; background:${av.bg}">${renderAvatarContent(av)}</div>
                       <div>
                         <div style="font-weight:700; font-size:14px;">${pl.name} <small style="color:var(--text-muted);">(${pl.studentId})</small></div>
                         <div style="font-size:12px; color:var(--text-muted);">${rk.icon} ${rk.title} • ${pl.xp} XP • ผ่าน ${countCompletedUnits(pl)}/13 บท</div>
@@ -291,6 +306,29 @@ window.App = (function () {
         main.querySelectorAll(".avatar-opt").forEach(x => x.classList.remove("selected"));
         el.classList.add("selected");
         chosenAvatar = el.dataset.av;
+      };
+    });
+
+    main.querySelectorAll(".avatar-filter-btn").forEach(btn => {
+      btn.onclick = () => {
+        SoundFX.click();
+        const filter = btn.dataset.filter;
+        main.querySelectorAll(".avatar-filter-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const opts = Array.from(main.querySelectorAll(".avatar-opt"));
+        opts.forEach(opt => {
+          const match = filter === "all" || opt.dataset.gender === filter;
+          opt.classList.toggle("hidden-opt", !match);
+        });
+        const currentEl = opts.find(o => o.dataset.av === chosenAvatar);
+        if (currentEl && currentEl.classList.contains("hidden-opt")) {
+          const firstVisible = opts.find(o => !o.classList.contains("hidden-opt"));
+          if (firstVisible) {
+            opts.forEach(x => x.classList.remove("selected"));
+            firstVisible.classList.add("selected");
+            chosenAvatar = firstVisible.dataset.av;
+          }
+        }
       };
     });
 
@@ -814,7 +852,7 @@ window.App = (function () {
       </div>
 
       <div class="card" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-bottom:22px;">
-        <div class="hud-avatar" style="width:76px; height:76px; font-size:40px; background:${av.bg}">${av.emoji}</div>
+        <div class="hud-avatar" style="width:80px; height:80px; font-size:40px; background:${av.bg}">${renderAvatarContent(av)}</div>
         <div style="flex:1;">
           <span class="badge-pill">รหัสนักศึกษา ${p.studentId} • ${p.classRoom} (${p.department})</span>
           <h2 style="font-size:24px; margin-top:4px;">${p.name}</h2>
