@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
+  <script>try{var t=localStorage.getItem('officequest13_theme_v1');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}catch(e){}</script>
 </head>
 <body>
   <!-- Toast Notification Container -->
@@ -33,6 +34,7 @@
         <button class="btn-icon-nav" onclick="App.navigate('arcade')" title="หมวดมินิเกมส์ท้าประลองและตารางคะแนน">🎮 <span>มินิเกมส์</span></button>
         <button class="btn-icon-nav" onclick="App.navigate('profile')" title="โปรไฟล์และเหรียญตรา">🏅 <span>เหรียญตรา</span></button>
         <button class="btn-icon-nav" onclick="App.navigate('certificate')" title="เกียรติบัตรดิจิทัล">📜 <span>เกียรติบัตร</span></button>
+        <button class="btn-icon-nav" id="btn-theme-toggle" onclick="App.toggleTheme()" title="สลับโหมดมืด / โหมดสว่าง">🌙</button>
         <button class="btn-icon-nav" id="btn-sound-toggle" onclick="App.toggleSound()" title="เปิด/ปิดเสียง">🔊</button>
         <button class="btn-teacher" onclick="App.openTeacherAuth()" title="โหมดครูผู้สอน">👩‍🏫 <span>โหมดครู</span></button>
       </div>

@@ -3,6 +3,7 @@
 window.App = (function () {
   const STORAGE_KEY = "officequest13_players_v1";
   const ACTIVE_KEY = "officequest13_active_id";
+  const THEME_KEY = "officequest13_theme_v1";
 
   let players = [];
   let activePlayerId = null;
@@ -10,6 +11,40 @@ window.App = (function () {
   let currentUnitId = 1;
   let currentUnitTab = "briefing"; // briefing | minigame | quiz
   let selectedZoneFilter = 0; // 0 = all, 1..4 = specific zone
+  let currentTheme = "light";
+
+  // ---------- Theme Helpers ----------
+  function applyTheme(theme) {
+    currentTheme = theme === "dark" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", currentTheme);
+    try { localStorage.setItem(THEME_KEY, currentTheme); } catch (e) {}
+    const isDark = currentTheme === "dark";
+    const hudBtn = document.getElementById("btn-theme-toggle");
+    if (hudBtn) {
+      hudBtn.textContent = isDark ? "☀️" : "🌙";
+      hudBtn.title = isDark ? "สลับเป็นโหมดสว่าง" : "สลับเป็นโหมดมืด";
+    }
+    const welcomeBtn = document.getElementById("btn-welcome-theme");
+    if (welcomeBtn) {
+      welcomeBtn.innerHTML = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
+    }
+  }
+
+  function loadTheme() {
+    try {
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved === "dark" || saved === "light") {
+        applyTheme(saved);
+        return;
+      }
+    } catch (e) {}
+    applyTheme("light");
+  }
+
+  function toggleTheme() {
+    SoundFX.click();
+    applyTheme(currentTheme === "dark" ? "light" : "dark");
+  }
 
   // ---------- Storage Helpers ----------
   function loadState() {
@@ -234,6 +269,11 @@ window.App = (function () {
     let chosenAvatar = window.GAME_DATA.avatars[0].id;
 
     main.innerHTML = `
+      <div class="welcome-topbar">
+        <button type="button" class="theme-pill-btn" id="btn-welcome-theme" onclick="App.toggleTheme()">
+          ${currentTheme === "dark" ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด"}
+        </button>
+      </div>
       <div class="welcome-wrap">
         <div class="welcome-hero">
           <div class="hero-top">
@@ -971,7 +1011,7 @@ window.App = (function () {
           ${window.GAME_DATA.ranks.map(r => {
             const reached = p.xp >= r.minXp;
             return `
-              <div style="padding:12px; border-radius:12px; border:1.5px solid ${reached ? r.color : "var(--border)"}; background:${reached ? "#f8fafc" : "#fff"}; opacity:${reached ? 1 : 0.55}; text-align:center;">
+              <div class="rank-step-card ${reached ? "reached" : ""}" style="border-color:${reached ? r.color : "var(--border)"};">
                 <div style="font-size:28px;">${r.icon}</div>
                 <div style="font-family:var(--font-head); font-weight:700; font-size:13px;">Lv.${r.level} ${r.title}</div>
                 <div style="font-size:12px; color:var(--text-muted);">${r.minXp} XP+</div>
@@ -1115,6 +1155,7 @@ window.App = (function () {
   }
 
   function init() {
+    loadTheme();
     loadState();
     currentView = getActivePlayer() ? "dashboard" : "welcome";
     render();
@@ -1124,7 +1165,7 @@ window.App = (function () {
 
   return {
     navigate, openUnit, openUnitTab, startAssessment, setZoneFilter,
-    toggleSound, openTeacherAuth, exitTeacherMode, logoutStudent,
+    toggleSound, toggleTheme, openTeacherAuth, exitTeacherMode, logoutStudent,
     showToast, showModal, closeModal,
     getActivePlayer, getAllPlayers, deletePlayer, getRank, countCompletedUnits,
     recordArcadeResult
