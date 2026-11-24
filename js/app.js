@@ -247,7 +247,7 @@ window.App = (function () {
             </div>
             <div class="form-group">
               <label>สาขาวิชา / แผนกวิชา</label>
-              <input class="form-control" id="reg-dept" value="การจัดการสำนักงานดิจิทัล" />
+              <input class="form-control" id="reg-dept" placeholder="เช่น การจัดการสำนักงานดิจิทัล / การบัญชี / การตลาด" />
             </div>
 
             <div class="form-group">
