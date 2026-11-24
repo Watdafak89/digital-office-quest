@@ -1188,7 +1188,7 @@ window.App = (function () {
     showModal(`
       <div style="font-size:48px; margin-bottom:6px;">👩‍🏫</div>
       <h2 style="margin-bottom:6px;">เข้าสู่โหมดครูผู้สอน</h2>
-      <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">กรอกรหัสผ่านครูผู้สอน (ค่าเริ่มต้น: <strong>1234</strong>)</p>
+      <p style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">กรอกรหัสผ่านครูผู้สอน</p>
       <input type="password" id="teacher-pass-input" class="form-control" placeholder="กรอกรหัสผ่าน..." style="text-align:center; font-size:18px; letter-spacing:4px; margin-bottom:14px;" />
       <div id="teacher-auth-err" style="color:var(--danger); font-size:13px; margin-bottom:10px;"></div>
       <div style="display:flex; gap:10px; justify-content:center;">
@@ -1206,7 +1206,7 @@ window.App = (function () {
         render();
       } else {
         SoundFX.wrong();
-        document.getElementById("teacher-auth-err").textContent = "❌ รหัสผ่านไม่ถูกต้อง (รหัสเริ่มต้นคือ 1234)";
+        document.getElementById("teacher-auth-err").textContent = "❌ รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง";
       }
     };
     document.getElementById("btn-teacher-login").onclick = doLogin;
