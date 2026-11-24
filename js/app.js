@@ -278,7 +278,8 @@ window.App = (function () {
         <div class="welcome-hero">
           <div class="hero-top">
             <h1>OfficeQuest 13</h1>
-            <p>พิชิตสำนักงานดิจิทัล — รายวิชา <strong>การใช้เครื่องใช้สำนักงานดิจิทัล</strong></p>
+            <div class="hero-subtitle-main">พิชิตสำนักงานดิจิทัล</div>
+            <p class="hero-subtitle-course">รายวิชา การใช้เครื่องใช้สำนักงานดิจิทัล</p>
           </div>
           <div class="hero-bottom">
             <button class="btn btn-sm hero-teacher-btn" onclick="App.openTeacherAuth()">👩‍🏫 เข้าสู่โหมดครูผู้สอน</button>
