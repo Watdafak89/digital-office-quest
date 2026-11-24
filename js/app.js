@@ -131,6 +131,28 @@ window.App = (function () {
     if (countCompletedUnits(p) === 13 && (p.postTestScore ?? 0) >= 10) {
       unlockBadge("director");
     }
+
+    // Arcade badges
+    if ((p.arcade?.plays || 0) >= 1) unlockBadge("arcade_rookie");
+    if ((p.arcade?.bestCombo || 0) >= 5) unlockBadge("arcade_combo");
+    if ((p.arcade?.bestScore || 0) >= 1000) unlockBadge("arcade_master");
+  }
+
+  function recordArcadeResult({ score, bestCombo, correctCount, totalAnswered }) {
+    const p = getActivePlayer();
+    if (!p) return { isNewRecord: false, xpEarned: 0 };
+    if (!p.arcade) p.arcade = { bestScore: 0, bestCombo: 0, plays: 0, lastScore: 0 };
+    const isNewRecord = score > (p.arcade.bestScore || 0);
+    p.arcade.plays = (p.arcade.plays || 0) + 1;
+    p.arcade.lastScore = score;
+    if (isNewRecord) p.arcade.bestScore = score;
+    if (bestCombo > (p.arcade.bestCombo || 0)) p.arcade.bestCombo = bestCombo;
+    saveState();
+
+    const xpEarned = score > 0 ? Math.min(80, Math.max(15, Math.round(score / 25))) : 10;
+    addXP(xpEarned, "มินิเกมส์ Office Rush");
+    checkAllBadges();
+    return { isNewRecord, xpEarned };
   }
 
   // ---------- UI Utilities ----------
@@ -197,7 +219,7 @@ window.App = (function () {
         <div class="xp-bar-wrap"><div class="xp-bar-fill" style="width:${pct}%"></div></div>
         <div class="hud-xp-meta">
           <span>⚡ ${p.xp} XP ${next ? `/ ${next.minXp} XP` : "(MAX RANK!)"}</span>
-          <span>🏅 ${(p.badges || []).length}/10 • 📚 ${countCompletedUnits(p)}/13 บท</span>
+          <span>🏅 ${(p.badges || []).length}/${window.GAME_DATA.badges.length} • 📚 ${countCompletedUnits(p)}/13 บท</span>
         </div>
       </div>
     `;
@@ -410,7 +432,7 @@ window.App = (function () {
         </div>
         <div class="stat-tile">
           <div class="stat-icon" style="background:#fffbeb;">🏅</div>
-          <div><div class="stat-val">${(p.badges || []).length} / 10</div><div class="stat-lbl">เหรียญตราความสำเร็จ</div></div>
+          <div><div class="stat-val">${(p.badges || []).length} / ${window.GAME_DATA.badges.length}</div><div class="stat-lbl">เหรียญตราความสำเร็จ</div></div>
         </div>
         <div class="stat-tile">
           <div class="stat-icon" style="background:#eff6ff;">📈</div>
@@ -438,6 +460,19 @@ window.App = (function () {
             ${p.postTestScore !== null ? "ทำใหม่พัฒนาคะแนน" : "เริ่มทำ Post-Test"}
           </button>
         </div>
+      </div>
+
+      <div class="arcade-promo-bar">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <div class="arcade-promo-icon">🎮</div>
+          <div>
+            <div style="font-family:var(--font-head); font-weight:700; font-size:16px; color:#fff;">หมวดมินิเกมส์ท้าประลอง: Office Rush (60 วินาที) + ตารางคะแนน</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.88);">
+              แข่งตอบไวสะสมคอมโบ ปลดล็อก 3 เหรียญตราพิเศษ และชิงอันดับ 1 บนตารางคะแนน! • สถิติสูงสุดของคุณ: <strong>${(p.arcade?.bestScore || 0).toLocaleString()} คะแนน</strong>
+            </div>
+          </div>
+        </div>
+        <button class="btn btn-warning btn-sm" style="flex-shrink:0;" onclick="App.navigate('arcade')">🏆 เข้าเล่น & ดูตารางคะแนน ➔</button>
       </div>
 
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:20px; align-items:center;">
@@ -864,7 +899,7 @@ window.App = (function () {
         <button class="btn btn-primary" onclick="App.navigate('certificate')">📜 ดูเกียรติบัตรดิจิทัล</button>
       </div>
 
-      <h3 style="margin-bottom:12px;">🏅 เหรียญตราความสำเร็จ (${(p.badges || []).length} / 10)</h3>
+      <h3 style="margin-bottom:12px;">🏅 เหรียญตราความสำเร็จ (${(p.badges || []).length} / ${window.GAME_DATA.badges.length})</h3>
       <div class="badges-grid" style="margin-bottom:28px;">
         ${window.GAME_DATA.badges.map(b => {
           const unlocked = (p.badges || []).includes(b.id);
@@ -937,7 +972,7 @@ window.App = (function () {
 
         <div style="display:inline-flex; gap:18px; flex-wrap:wrap; justify-content:center; background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px 24px; margin:10px 0 22px; font-size:14px;">
           <span>⚡ คะแนนสะสม: <strong>${p.xp} XP</strong></span>
-          <span>🏅 เหรียญตรา: <strong>${(p.badges || []).length}/10</strong></span>
+          <span>🏅 เหรียญตรา: <strong>${(p.badges || []).length}/${window.GAME_DATA.badges.length}</strong></span>
           <span>📝 Pre-Test: <strong>${p.preTestScore ?? "-"}/13</strong></span>
           <span>🎓 Post-Test: <strong>${p.postTestScore ?? "-"}/13</strong></span>
         </div>
@@ -1009,6 +1044,7 @@ window.App = (function () {
 
   // ---------- Navigation Router ----------
   function navigate(view) {
+    if (window.ArcadeModule) ArcadeModule.stopTimer();
     currentView = view;
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1019,6 +1055,7 @@ window.App = (function () {
     const main = document.getElementById("app-main");
     if (currentView === "welcome") return renderWelcome();
     if (currentView === "dashboard") return renderDashboard();
+    if (currentView === "arcade") return ArcadeModule.render(main);
     if (currentView === "unit") return renderUnitView();
     if (currentView === "profile") return renderProfile();
     if (currentView === "certificate") return renderCertificate();
@@ -1040,6 +1077,7 @@ window.App = (function () {
     navigate, openUnit, openUnitTab, startAssessment, setZoneFilter,
     toggleSound, openTeacherAuth, exitTeacherMode, logoutStudent,
     showToast, showModal, closeModal,
-    getAllPlayers, deletePlayer, getRank, countCompletedUnits
+    getActivePlayer, getAllPlayers, deletePlayer, getRank, countCompletedUnits,
+    recordArcadeResult
   };
 })();
