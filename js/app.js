@@ -390,6 +390,9 @@ window.App = (function () {
             <div class="hero-subtitle-main">พิชิตสำนักงานดิจิทัล</div>
             <p class="hero-subtitle-course">รายวิชา การใช้เครื่องใช้สำนักงานดิจิทัล</p>
           </div>
+          <div class="hero-artwork-wrap">
+            <img src="assets/hero-office.jpg" alt="OfficeQuest 13 สำนักงานดิจิทัล" class="hero-artwork-img" />
+          </div>
           <div class="hero-bottom">
             <button class="btn btn-sm hero-teacher-btn" onclick="App.openTeacherAuth()">👩‍🏫 เข้าสู่โหมดครูผู้สอน</button>
           </div>
