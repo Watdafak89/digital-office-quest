@@ -1,19 +1,19 @@
 /* OfficeQuest 13 — Modern Gamified Thai Vocational UI */
 
 :root {
-  --bg: #f1f5f9;
+  --bg: #eef2f7;
   --surface: #ffffff;
   --surface-soft: #f8fafc;
-  --border: #e2e8f0;
+  --border: #cbd5e1;
   --text: #0f172a;
   --text-muted: #475569;
-  --primary: #4f46e5;
-  --primary-dark: #3730a3;
+  --primary: #4338ca;
+  --primary-dark: #312e81;
   --primary-soft: #eef2ff;
-  --accent: #0ea5e9;
-  --success: #10b981;
+  --accent: #0284c7;
+  --success: #059669;
   --success-soft: #ecfdf5;
-  --warning: #f59e0b;
+  --warning: #d97706;
   --warning-soft: #fffbeb;
   --danger: #e11d48;
   --danger-soft: #fff1f2;
@@ -1124,6 +1124,7 @@ h1, h2, h3, h4, button, .font-head {
 
 .pos-receipt {
   background: #fffbeb;
+  color: #1e293b;
   border: 2px dashed #d97706;
   border-radius: 14px;
   padding: 16px;
@@ -1217,10 +1218,10 @@ table.data-table th, table.data-table td {
 }
 
 table.data-table th {
-  background: #f8fafc;
+  background: var(--surface-soft);
   font-family: var(--font-head);
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text);
 }
 
 /* ========== Certificate ========== */
@@ -1813,62 +1814,125 @@ body,
 }
 
 [data-theme="dark"] {
-  --bg: #0b1120;
-  --surface: #111c30;
-  --surface-soft: #1a2740;
-  --border: #2a3a56;
-  --text: #f1f5f9;
-  --text-muted: #94a3b8;
-  --primary: #818cf8;
-  --primary-dark: #6366f1;
-  --primary-soft: rgba(129, 140, 248, 0.16);
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface-soft: #263449;
+  --border: #3b4c68;
+  --text: #f8fafc;
+  --text-muted: #cbd5e1;
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-soft: rgba(99, 102, 241, 0.22);
   --accent: #38bdf8;
   --success: #34d399;
-  --success-soft: rgba(52, 211, 153, 0.16);
+  --success-soft: rgba(16, 185, 129, 0.18);
   --warning: #fbbf24;
-  --warning-soft: rgba(251, 191, 36, 0.16);
+  --warning-soft: rgba(245, 158, 11, 0.18);
   --danger: #fb7185;
-  --danger-soft: rgba(251, 113, 133, 0.16);
+  --danger-soft: rgba(244, 63, 94, 0.2);
   --shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 14px 36px rgba(0, 0, 0, 0.52);
 }
 
 [data-theme="dark"] .app-header {
-  background: rgba(11, 17, 32, 0.88);
-  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.35);
+  background: rgba(15, 23, 42, 0.92);
+  box-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .badge-pill {
+  background: rgba(99, 102, 241, 0.28);
+  color: #e0e7ff;
+}
+
+[data-theme="dark"] .xp-bar-wrap {
+  background: #334155;
 }
 
 [data-theme="dark"] .form-control {
-  background: var(--surface-soft);
-  color: var(--text);
+  background: #0f172a;
+  color: #f8fafc;
   border-color: var(--border);
 }
 
 [data-theme="dark"] .form-control::placeholder {
-  color: #64748b;
+  color: #94a3b8;
 }
 
 [data-theme="dark"] .form-control:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.22);
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.28);
 }
 
-[data-theme="dark"] .btn-primary {
+[data-theme="dark"] .btn-primary,
+[data-theme="dark"] .auth-mode-tab.active,
+[data-theme="dark"] .avatar-filter-btn.active,
+[data-theme="dark"] .step-tab.active {
   background: linear-gradient(135deg, #6366f1, #4f46e5);
   color: #ffffff;
 }
 
 [data-theme="dark"] .btn-outline,
-[data-theme="dark"] .btn-icon-nav {
+[data-theme="dark"] .btn-icon-nav,
+[data-theme="dark"] .step-tab {
+  background: var(--surface-soft);
+  color: #f1f5f9;
+  border-color: var(--border);
+}
+
+[data-theme="dark"] .btn-outline:hover,
+[data-theme="dark"] .btn-icon-nav:hover,
+[data-theme="dark"] .step-tab:hover {
+  border-color: #818cf8;
+  color: #e0e7ff;
+}
+
+[data-theme="dark"] .assess-card.done {
+  background: rgba(16, 185, 129, 0.14);
+  border-color: #34d399;
+}
+
+[data-theme="dark"] .pro-tip-box {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(251, 191, 36, 0.45);
+  color: #fef3c7;
+}
+
+[data-theme="dark"] .mg-feedback.ok,
+[data-theme="dark"] .choice-btn.correct {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: #34d399;
+  color: #a7f3d0;
+}
+
+[data-theme="dark"] .mg-feedback.err,
+[data-theme="dark"] .choice-btn.wrong {
+  background: rgba(244, 63, 94, 0.2);
+  border-color: #fb7185;
+  color: #fecdd3;
+}
+
+[data-theme="dark"] .choice-btn,
+[data-theme="dark"] .briefing-item,
+[data-theme="dark"] .item-card,
+[data-theme="dark"] .cat-bucket {
   background: var(--surface-soft);
   color: var(--text);
   border-color: var(--border);
 }
 
-[data-theme="dark"] .btn-outline:hover,
-[data-theme="dark"] .btn-icon-nav:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+[data-theme="dark"] .lesson-objectives-box {
+  background: rgba(99, 102, 241, 0.16);
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+[data-theme="dark"] .lesson-objectives-box h4 {
+  color: #c7d2fe;
+}
+
+[data-theme="dark"] .auth-error-box {
+  background: rgba(244, 63, 94, 0.2);
+  color: #fecdd3;
+  border-color: rgba(251, 113, 133, 0.45);
 }
 
 [data-theme="dark"] .btn-teacher {
