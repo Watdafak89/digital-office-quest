@@ -910,10 +910,25 @@ window.App = (function () {
     const contentEl = document.getElementById("unit-tab-content");
 
     if (currentUnitTab === "briefing") {
+      const extra = window.GAME_DATA.lessonDetails?.[u.id] || null;
       contentEl.innerHTML = `
-        <div class="card">
-          <h3 style="margin-bottom:8px;">📌 สรุปสาระสำคัญ ${u.code}: ${u.title}</h3>
-          <p style="font-size:16px; color:var(--text-muted);">${u.briefing.intro}</p>
+        <div class="card lesson-sheet" id="lesson-sheet">
+          <div class="lesson-toolbar">
+            <div>
+              <h3 style="margin-bottom:4px;">📖 เนื้อหาบทเรียน ${u.code}: ${u.title}</h3>
+              <p style="font-size:15px; color:var(--text-muted); margin:0;">${u.briefing.intro}</p>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-present-mode" style="flex-shrink:0;">🖥️ ขยายตัวอักษรสอนหน้าชั้น</button>
+          </div>
+
+          ${extra?.objectives ? `
+            <div class="lesson-objectives-box">
+              <h4>🎯 จุดประสงค์การเรียนรู้</h4>
+              <ul>
+                ${extra.objectives.map(obj => `<li>${obj}</li>`).join("")}
+              </ul>
+            </div>
+          ` : ""}
 
           <div class="briefing-grid">
             ${u.briefing.keyPoints.map(kp => `
@@ -924,6 +939,41 @@ window.App = (function () {
             `).join("")}
           </div>
 
+          ${extra?.sections ? `
+            <div class="lesson-deep-sections">
+              <h3 class="lesson-block-heading">📚 เนื้อหาบรรยายละเอียด (สำหรับศึกษาและสอนในห้องเรียน)</h3>
+              ${extra.sections.map(sec => `
+                <div class="lesson-section-card">
+                  <h4>${sec.title}</h4>
+                  <ul>
+                    ${sec.bullets.map(b => `<li>${b}</li>`).join("")}
+                  </ul>
+                </div>
+              `).join("")}
+            </div>
+          ` : ""}
+
+          ${extra?.caseStudy ? `
+            <div class="lesson-case-box">
+              <div class="lc-badge">🏢 กรณีศึกษาจากสำนักงานจริง</div>
+              <h4>${extra.caseStudy.title}</h4>
+              <p class="lc-scenario">${extra.caseStudy.scenario}</p>
+              <div class="lc-takeaway"><strong>✅ ข้อสรุปสำคัญ:</strong> ${extra.caseStudy.takeaway}</div>
+            </div>
+          ` : ""}
+
+          ${extra?.discussions ? `
+            <div class="lesson-discussion-wrap">
+              <h3 class="lesson-block-heading">💬 คำถามชวนคิด / อภิปรายในห้องเรียน</h3>
+              ${extra.discussions.map((d, i) => `
+                <details class="discussion-item">
+                  <summary><span class="disc-num">คำถามที่ ${i + 1}</span> ${d.q}</summary>
+                  <div class="disc-answer"><strong>💡 แนวคำตอบ:</strong> ${d.a}</div>
+                </details>
+              `).join("")}
+            </div>
+          ` : ""}
+
           <div class="pro-tip-box">
             <strong>💡 เคล็ดลับจำแม่นระดับ ปวช.:</strong> ${u.briefing.proTip}
           </div>
@@ -933,6 +983,18 @@ window.App = (function () {
           </div>
         </div>
       `;
+
+      const presentBtn = contentEl.querySelector("#btn-present-mode");
+      const sheetEl = contentEl.querySelector("#lesson-sheet");
+      if (presentBtn && sheetEl) {
+        presentBtn.onclick = () => {
+          SoundFX.click();
+          const on = sheetEl.classList.toggle("present-mode");
+          presentBtn.textContent = on ? "🔽 กลับขนาดปกติ" : "🖥️ ขยายตัวอักษรสอนหน้าชั้น";
+          presentBtn.classList.toggle("btn-primary", on);
+          presentBtn.classList.toggle("btn-outline", !on);
+        };
+      }
     } else if (currentUnitTab === "minigame") {
       MiniGames.mount(u, contentEl, (res) => {
         const player = getActivePlayer();
