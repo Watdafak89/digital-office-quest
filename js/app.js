@@ -941,7 +941,7 @@ window.App = (function () {
 
           ${extra?.sections ? `
             <div class="lesson-deep-sections">
-              <h3 class="lesson-block-heading">📚 เนื้อหาบรรยายละเอียด (สำหรับศึกษาและสอนในห้องเรียน)</h3>
+              <h3 class="lesson-block-heading">📚 เนื้อหาบรรยายละเอียด</h3>
               ${extra.sections.map(sec => `
                 <div class="lesson-section-card">
                   <h4>${sec.title}</h4>
