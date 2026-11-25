@@ -307,14 +307,14 @@ h1, h2, h3, h4, button, .font-head {
 }
 
 .welcome-hero {
-  background: linear-gradient(165deg, #131136 0%, #1e1b5e 52%, #13254c 100%);
+  background: linear-gradient(180deg, #0d1233 0%, #161b4d 48%, #10173f 100%);
   color: #fff;
   border-radius: 22px;
-  padding: 26px 24px 22px;
+  padding: 28px 24px 24px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 16px;
+  gap: 8px;
   box-shadow: var(--shadow-lg);
   position: relative;
   overflow: hidden;
@@ -323,24 +323,24 @@ h1, h2, h3, h4, button, .font-head {
 .hero-artwork-wrap {
   position: relative;
   z-index: 2;
-  width: 100%;
+  margin: 0 -24px;
+  width: calc(100% + 48px);
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.32);
 }
 
 .hero-artwork-img {
   width: 100%;
   height: 100%;
-  max-height: 330px;
+  max-height: 360px;
   object-fit: cover;
   object-position: center center;
   display: block;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0%, #000 14%, #000 86%, transparent 100%);
 }
 
 .hero-top,
