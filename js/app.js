@@ -911,6 +911,7 @@ window.App = (function () {
 
     if (currentUnitTab === "briefing") {
       const extra = window.GAME_DATA.lessonDetails?.[u.id] || null;
+      const visual = window.GAME_DATA.lessonVisuals?.[u.id] || null;
       contentEl.innerHTML = `
         <div class="card lesson-sheet" id="lesson-sheet">
           <div class="lesson-toolbar">
@@ -942,6 +943,12 @@ window.App = (function () {
           ${extra?.sections ? `
             <div class="lesson-deep-sections">
               <h3 class="lesson-block-heading">📚 เนื้อหาบรรยายละเอียด</h3>
+              ${visual ? `
+                <figure class="lesson-visual-card">
+                  ${visual.svg}
+                  <figcaption>🖼️ ${visual.caption}</figcaption>
+                </figure>
+              ` : ""}
               ${extra.sections.map(sec => `
                 <div class="lesson-section-card">
                   <h4>${sec.title}</h4>

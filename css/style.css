@@ -2408,3 +2408,31 @@ body,
   font-size: 19px !important;
   line-height: 1.75 !important;
 }
+
+
+/* ========== Lesson Visual Infographic Figure ========== */
+.lesson-visual-card {
+  margin: 0 0 6px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  box-shadow: var(--shadow);
+}
+
+.lesson-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+  font-family: var(--font-head);
+}
+
+.lesson-visual-card figcaption {
+  margin-top: 8px;
+  text-align: center;
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
